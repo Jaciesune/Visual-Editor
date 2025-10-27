@@ -20,14 +20,30 @@
         </Grid.ColumnDefinitions>
 
         <!-- Pasek narzędzi głównych -->
-        <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="3" Padding="8" Spacing="8" BackgroundColor="#F0F0F0">
-            <Button Text="Nowy" />
-            <Button Text="Otwórz" />
-            <Button Text="Zapisz"/>
+        <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="3"
+            Padding="4"
+            Spacing="8"
+            BackgroundColor="#23262B"
+            HeightRequest="48">
+            <Button Text="Nowy"
+                TextColor="White"
+                BackgroundColor="#393e46"
+                FontAttributes="Bold"
+                CornerRadius="6"/>
+            <Button Text="Otwórz"
+                TextColor="White"
+                BackgroundColor="#393e46"
+                FontAttributes="Bold"
+                CornerRadius="6"/>
+            <Button Text="Zapisz"
+                TextColor="White"
+                BackgroundColor="#393e46"
+                FontAttributes="Bold"
+                CornerRadius="6"/>
         </HorizontalStackLayout>
 
         <!-- Lewy panel narzędzi rysowania -->
-        <StackLayout Grid.Row="1" Grid.Column="0" BackgroundColor="#EEEEEE">
+        <StackLayout Grid.Row="1" Grid.Column="0" BackgroundColor="#525252">
             <Label Text="Narzędzia" FontAttributes="Bold" Margin="10"/>
             <!-- Placeholdery na narzędzia -->
             <Button Text="Pędzel"/>
@@ -43,7 +59,7 @@
         </Frame>
 
         <!-- Panel warstw -->
-        <StackLayout Grid.Row="1" Grid.Column="2" BackgroundColor="#F7F7F7" Padding="8">
+        <StackLayout Grid.Row="1" Grid.Column="2" BackgroundColor="#525252" Padding="8">
             <Label Text="Warstwy" FontAttributes="Bold"/>
             <ListView>
                 <!-- Placeholder -->
