@@ -1,0 +1,60 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="VE.Views.MainPage"
+             Title="Edytor graficzny">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Toolbar -->
+            <RowDefinition Height="*"/>
+            <!-- Główna treść -->
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <!-- Panel narzędzi -->
+            <ColumnDefinition Width="*"/>
+            <!-- Canvas i warstwy -->
+            <ColumnDefinition Width="300"/>
+            <!-- Panel warstw -->
+        </Grid.ColumnDefinitions>
+
+        <!-- Pasek narzędzi głównych -->
+        <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="3" Padding="8" Spacing="8" BackgroundColor="#F0F0F0">
+            <Button Text="Nowy" />
+            <Button Text="Otwórz" />
+            <Button Text="Zapisz"/>
+        </HorizontalStackLayout>
+
+        <!-- Lewy panel narzędzi rysowania -->
+        <StackLayout Grid.Row="1" Grid.Column="0" BackgroundColor="#EEEEEE">
+            <Label Text="Narzędzia" FontAttributes="Bold" Margin="10"/>
+            <!-- Placeholdery na narzędzia -->
+            <Button Text="Pędzel"/>
+            <Button Text="Gumka"/>
+            <Button Text="Wiadro"/>
+            <Button Text="Pipeta"/>
+        </StackLayout>
+
+        <!-- Główny Canvas -->
+        <Frame Grid.Row="1" Grid.Column="1" Margin="10" BackgroundColor="White" BorderColor="#AAAAAA" CornerRadius="4">
+            <!-- Tutaj będzie SKCanvasView z kodu -->
+            <Label Text="CANVAS (SKCanvasView tutaj)" VerticalOptions="Center" HorizontalOptions="Center" TextColor="#CCCCCC"/>
+        </Frame>
+
+        <!-- Panel warstw -->
+        <StackLayout Grid.Row="1" Grid.Column="2" BackgroundColor="#F7F7F7" Padding="8">
+            <Label Text="Warstwy" FontAttributes="Bold"/>
+            <ListView>
+                <!-- Placeholder -->
+                <ListView.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Tło</x:String>
+                        <x:String>Warstwa 1</x:String>
+                    </x:Array>
+                </ListView.ItemsSource>
+            </ListView>
+            <Button Text="Dodaj warstwę" Margin="0,10,0,0"/>
+        </StackLayout>
+    </Grid>
+</ContentPage>
