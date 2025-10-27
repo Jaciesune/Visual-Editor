@@ -47,6 +47,25 @@
             <Label Text="Narzędzia" FontAttributes="Bold" Margin="10"/>
             <!-- Placeholdery na narzędzia -->
             <Button Text="Pędzel"/>
+            <Frame BorderColor="#393e46" Margin="8,16,8,8" Padding="8" BackgroundColor="#636363">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Kolor pędzla (RGB):" FontAttributes="Bold" TextColor="#23262B"/>
+                    <HorizontalStackLayout Spacing="4">
+                        <Entry x:Name="RValue" WidthRequest="40" MaxLength="3"
+                   Keyboard="Numeric" Placeholder="R"/>
+                        <Entry x:Name="GValue" WidthRequest="40" MaxLength="3"
+                   Keyboard="Numeric" Placeholder="G"/>
+                        <Entry x:Name="BValue" WidthRequest="40" MaxLength="3"
+                   Keyboard="Numeric" Placeholder="B"/>
+                    </HorizontalStackLayout>
+                    <BoxView x:Name="BrushPreview"
+                 HeightRequest="30"
+                 CornerRadius="5"
+                 Margin="2"
+                 WidthRequest="70"
+                 BackgroundColor="Black"/>
+                </VerticalStackLayout>
+            </Frame>
             <Button Text="Gumka"/>
             <Button Text="Wiadro"/>
             <Button Text="Pipeta"/>
