@@ -72,9 +72,9 @@
                         TextColor="#23262B"/>
 
                     <HorizontalStackLayout Spacing="4">
-                        <Entry Text="{Binding Brush.R, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="R"/>
-                        <Entry Text="{Binding Brush.G, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="G"/>
-                        <Entry Text="{Binding Brush.B, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="B"/>
+                            <Entry Text="{Binding Brush.R, Mode=TwoWay, Converter={StaticResource RgbStringToIntConverter}}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="R"/>
+                            <Entry Text="{Binding Brush.G, Mode=TwoWay, Converter={StaticResource RgbStringToIntConverter}}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="G"/>
+                            <Entry Text="{Binding Brush.B, Mode=TwoWay, Converter={StaticResource RgbStringToIntConverter}}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="B"/>
                     </HorizontalStackLayout>
 
                     <Label Text="Podgląd koloru:"
