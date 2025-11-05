@@ -70,9 +70,9 @@
                         TextColor="#23262B"/>
 
                     <HorizontalStackLayout Spacing="4">
-                        <Entry x:Name="RValue" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="R"/>
-                        <Entry x:Name="GValue" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="G"/>
-                        <Entry x:Name="BValue" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="B"/>
+                        <Entry Text="{Binding Brush.R, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="R"/>
+                        <Entry Text="{Binding Brush.G, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="G"/>
+                        <Entry Text="{Binding Brush.B, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="B"/>
                     </HorizontalStackLayout>
 
                     <Label Text="Podgląd koloru:"
@@ -88,7 +88,7 @@
                            BorderColor="#393e46"
                            HasShadow="False"
                            VerticalOptions="Start">         
-                        <BoxView x:Name="BrushPreview"
+                        <BoxView Color="{Binding BrushColor}"
                              WidthRequest="60"
                              HeightRequest="28"
                              CornerRadius="6"
