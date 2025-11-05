@@ -41,7 +41,8 @@
                 TextColor="White"
                 BackgroundColor="#393e46"
                 FontAttributes="Bold"
-                CornerRadius="6"/>
+                CornerRadius="6"
+                Clicked="SaveButton_Clicked"/>
         </HorizontalStackLayout>
 
         <!-- Lewy panel narzędzi rysowania -->

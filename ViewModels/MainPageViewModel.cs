@@ -6,11 +6,23 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using VE.Models;
+using VE.Views;
 
 namespace VE.ViewModels
 {
     public class MainPageViewModel : INotifyPropertyChanged
     {
+        public MainPageViewModel()
+        {
+            Brush.PropertyChanged += (s, e) =>
+            {
+                OnPropertyChanged(nameof(BrushColor));
+            };
+
+            OpenImageCommand = new Command(async () => await OpenImageAsync());
+            SaveImageCommand = new Command(async () => await SaveImage());
+
+        }
 
         // Obsługa BrushStroke //
         public ObservableCollection<BrushStroke> Strokes { get; } = new();
@@ -66,17 +78,8 @@ namespace VE.ViewModels
             set { _canvasImage = value; OnPropertyChanged(nameof(CanvasImage)); }
         }
 
+        // OpenImage Command //
         public ICommand OpenImageCommand { get; }
-
-        public MainPageViewModel()
-        {
-            Brush.PropertyChanged += (s, e) =>
-            {
-                OnPropertyChanged(nameof(BrushColor));
-            };
-
-            OpenImageCommand = new Command(async () => await OpenImageAsync());
-        }
 
         private async Task OpenImageAsync()
         {
@@ -113,6 +116,8 @@ namespace VE.ViewModels
             }
         }
 
+        //------ OpenImage Command ------//
+
         public Color BrushColor => Color.FromRgb(Brush.R, Brush.G, Brush.B);
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -126,5 +131,51 @@ namespace VE.ViewModels
             set { _imageLoadError = value; OnPropertyChanged(nameof(ImageLoadError)); }
         }
 
+        // SaveImage Command //
+        public ICommand SaveImageCommand { get; }
+
+        public async Task SaveImage()
+        {
+            var mainPage = (Application.Current.MainPage as MainPage);
+
+            // Wywołaj zapis dialogu
+            var filePath = await mainPage.ShowSaveFileDialog("obraz.png");
+            if (filePath == null)
+                return; // użytkownik anulował
+
+            // generowanie bitmapy z SKSurface
+            int width = 700;
+            int height = 450;
+            using var surface = SKSurface.Create(new SKImageInfo(width, height));
+            var canvas = surface.Canvas;
+            canvas.Clear(SKColors.White);
+
+            // narysuj wszystko z PaintSurface
+            foreach (var stroke in Strokes)
+            {
+                if (stroke.Points.Count < 2) continue;
+                using var paint = new SKPaint
+                {
+                    Color = stroke.StrokeColor,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeCap = SKStrokeCap.Round,
+                    StrokeWidth = 4,
+                    IsAntialias = true
+                };
+                for (int i = 1; i < stroke.Points.Count; i++)
+                {
+                    var p1 = stroke.Points[i - 1];
+                    var p2 = stroke.Points[i];
+                    canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
+                }
+            }
+
+            using var image = surface.Snapshot();
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+
+            using var stream = File.OpenWrite(filePath);
+            data.SaveTo(stream);
+        }
+        //------ SaveImage Command ------//
     }
 }

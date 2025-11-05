@@ -2,6 +2,14 @@
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
+using VE.ViewModels;
+
+#if WINDOWS
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml;
+using WinRT.Interop;
+using Microsoft.UI.Windowing;
+#endif
 
 namespace VE.Views
 {
@@ -84,5 +92,66 @@ namespace VE.Views
                 }
             }
         }
+
+        // Obsługa SaveFile //
+
+        public async Task<string> ShowSaveFileDialog(string suggestedFileName)
+        {
+        #if WINDOWS
+            var picker = new Windows.Storage.Pickers.FileSavePicker();
+            var window = (Microsoft.Maui.Controls.Application.Current.Windows[0].Handler.PlatformView as Microsoft.UI.Xaml.Window);
+            var hwnd = WindowNative.GetWindowHandle(window);
+            InitializeWithWindow.Initialize(picker, hwnd);
+
+            picker.SuggestedFileName = suggestedFileName;
+            picker.FileTypeChoices.Add("PNG", new List<string>() { ".png" });
+            picker.FileTypeChoices.Add("JPG", new List<string>() { ".jpg" });
+
+            var file = await picker.PickSaveFileAsync();
+            return file?.Path;
+        #else
+                // ewentualne ustawienie zapisania dla innych sys.
+                return null;
+        #endif
+        }
+
+        private async void SaveButton_Clicked(object sender, EventArgs e)
+        {
+            var filePath = await ShowSaveFileDialog("obraz.png");
+            if (filePath == null) return;
+
+            var vm = (MainPageViewModel)BindingContext;
+
+            int width = 700;
+            int height = 450;
+            using var surface = SKSurface.Create(new SKImageInfo(width, height));
+            var canvas = surface.Canvas;
+            canvas.Clear(SKColors.White);
+
+            foreach (var stroke in vm.Strokes)
+            {
+                if (stroke.Points.Count < 2) continue;
+                using var paint = new SKPaint
+                {
+                    Color = stroke.StrokeColor,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeCap = SKStrokeCap.Round,
+                    StrokeWidth = 4,
+                    IsAntialias = true
+                };
+                for (int i = 1; i < stroke.Points.Count; i++)
+                {
+                    var p1 = stroke.Points[i - 1];
+                    var p2 = stroke.Points[i];
+                    canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
+                }
+            }
+            using var image = surface.Snapshot();
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            using var stream = File.OpenWrite(filePath);
+            data.SaveTo(stream);
+        }
+
+        //------ Obsługa SaveFile ------//
     }
 }
