@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Graphics;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -10,7 +11,21 @@ namespace VE.ViewModels
     public class MainPageViewModel : INotifyPropertyChanged
     {
         public BrushSettings Brush { get; set; } = new BrushSettings();
-        
+
+        public ObservableCollection<Point> BrushPoints { get; } = new();
+
+        public void AddBrushPoint(double x, double y)
+        {
+            BrushPoints.Add(new Point(x, y));
+            OnPropertyChanged(nameof(BrushPoints));
+        }
+
+        public void ClearBrushPoints()
+        {
+            BrushPoints.Clear();
+            OnPropertyChanged(nameof(BrushPoints));
+        }
+
         private ImageSource _canvasImage;
         public ImageSource CanvasImage
         {

@@ -1,5 +1,6 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="VE.Views.MainPage"
              Title="Edytor graficzny">
 
@@ -117,9 +118,10 @@
                 HorizontalOptions="Center"
                 VerticalOptions="Center">
 
-                <Image 
-                    Source="{Binding CanvasImage}" 
-                    Aspect="AspectFit"
+                <skia:SKCanvasView x:Name="MainCanvas"
+                    PaintSurface="MainCanvas_PaintSurface"
+                    EnableTouchEvents="True"
+                    Touch="MainCanvas_Touch"
                     WidthRequest="700"
                     HeightRequest="450"/>
             </Frame>
