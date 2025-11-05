@@ -35,11 +35,20 @@ namespace VE.Views
         {
             if (BindingContext is VE.ViewModels.MainPageViewModel vm)
             {
-                if (e.ActionType is SKTouchAction.Pressed or SKTouchAction.Moved)
-                    vm.AddBrushPoint(e.Location.X, e.Location.Y);
-
-                if (e.ActionType == SKTouchAction.Released) {  }
-
+                switch (e.ActionType)
+                {
+                    case SKTouchAction.Pressed:
+                        vm.StartStroke();
+                        vm.AddStrokePoint(e.Location.X, e.Location.Y);
+                        break;
+                    case SKTouchAction.Moved:
+                        vm.AddStrokePoint(e.Location.X, e.Location.Y);
+                        break;
+                    case SKTouchAction.Released:
+                    case SKTouchAction.Cancelled:
+                        vm.EndStroke();
+                        break;
+                }
                 MainCanvas.InvalidateSurface();
                 e.Handled = true;
             }
@@ -48,26 +57,29 @@ namespace VE.Views
         private void MainCanvas_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
             var vm = BindingContext as VE.ViewModels.MainPageViewModel;
-            var surface = e.Surface;
-            var canvas = surface.Canvas;
+            var canvas = e.Surface.Canvas;
             canvas.Clear(SKColors.White);
 
-            if (vm != null && vm.BrushPoints.Count > 1)
+            if (vm == null) return;
+
+            foreach (var stroke in vm.Strokes)
             {
-                var color = new SKColor((byte)vm.Brush.R, (byte)vm.Brush.G, (byte)vm.Brush.B);
+                if (stroke.Points.Count < 2)
+                    continue;
+
                 using var paint = new SKPaint
                 {
-                    Color = color,
+                    Color = stroke.StrokeColor,
                     Style = SKPaintStyle.Stroke,
                     StrokeCap = SKStrokeCap.Round,
                     StrokeWidth = 4,
                     IsAntialias = true
                 };
 
-                for (int i = 1; i < vm.BrushPoints.Count; ++i)
+                for (int i = 1; i < stroke.Points.Count; i++)
                 {
-                    var p1 = vm.BrushPoints[i - 1];
-                    var p2 = vm.BrushPoints[i];
+                    var p1 = stroke.Points[i - 1];
+                    var p2 = stroke.Points[i];
                     canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
                 }
             }

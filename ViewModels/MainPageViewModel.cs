@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Graphics;
+using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -10,7 +11,39 @@ namespace VE.ViewModels
 {
     public class MainPageViewModel : INotifyPropertyChanged
     {
+
+        // Obsługa BrushStroke //
+        public ObservableCollection<BrushStroke> Strokes { get; } = new();
+
+        // tymczasowo przechowuje aktualnie rysowaną linię
+        private BrushStroke _currentStroke;
+
         public BrushSettings Brush { get; set; } = new BrushSettings();
+
+        public void StartStroke()
+        {
+            _currentStroke = new BrushStroke
+            {
+                StrokeColor = new SKColor((byte)Brush.R, (byte)Brush.G, (byte)Brush.B)
+            };
+            Strokes.Add(_currentStroke);
+            OnPropertyChanged(nameof(Strokes));
+        }
+
+        public void AddStrokePoint(double x, double y)
+        {
+            _currentStroke?.Points.Add(new Point(x, y));
+            OnPropertyChanged(nameof(Strokes));
+        }
+
+        public void EndStroke()
+        {
+            _currentStroke = null;
+            OnPropertyChanged(nameof(Strokes));
+        }
+
+
+        //------ BrushStroke ------//
 
         public ObservableCollection<Point> BrushPoints { get; } = new();
 
