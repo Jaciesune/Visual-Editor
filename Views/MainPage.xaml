@@ -34,7 +34,8 @@
                 TextColor="White"
                 BackgroundColor="#393e46"
                 FontAttributes="Bold"
-                CornerRadius="6"/>
+                CornerRadius="6"
+                Command="{Binding OpenImageCommand}"/>
             <Button Text="Zapisz"
                 TextColor="White"
                 BackgroundColor="#393e46"
@@ -104,10 +105,25 @@
         </StackLayout>
 
         <!-- Główny Canvas -->
-        <Frame Grid.Row="1" Grid.Column="1" Margin="10" BackgroundColor="White" BorderColor="#AAAAAA" CornerRadius="4">
-            <!-- Tutaj będzie SKCanvasView z kodu -->
-            <Label Text="CANVAS (SKCanvasView tutaj)" VerticalOptions="Center" HorizontalOptions="Center" TextColor="#CCCCCC"/>
-        </Frame>
+        <Label Text="{Binding ImageLoadError}" TextColor="Red" FontSize="13"/>
+        <ScrollView Grid.Row="1" Grid.Column="1" Orientation="Both" BackgroundColor="Transparent">
+            <Frame 
+                Margin="10"
+                BackgroundColor="White"
+                BorderColor="#AAAAAA"
+                CornerRadius="4"
+                WidthRequest="700"
+                HeightRequest="450"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+
+                <Image 
+                    Source="{Binding CanvasImage}" 
+                    Aspect="AspectFit"
+                    WidthRequest="700"
+                    HeightRequest="450"/>
+            </Frame>
+        </ScrollView>
 
         <!-- Panel warstw -->
         <StackLayout Grid.Row="1" Grid.Column="2" BackgroundColor="#525252" Padding="8">
