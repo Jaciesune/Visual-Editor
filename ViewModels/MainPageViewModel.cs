@@ -71,18 +71,60 @@ namespace VE.ViewModels
         {
             if (SelectedLayer == null) return;
             double r = Eraser.Size;
-            foreach (var stroke in SelectedLayer.Strokes.Reverse())
+
+            var strokesToAdd = new List<BrushStroke>();
+
+            foreach (var stroke in SelectedLayer.Strokes.Reverse().ToList())
             {
-                for (int i = stroke.Points.Count - 1; i >= 0; i--)
+                var newSegments = new List<List<Point>>();
+                var currentSegment = new List<Point>();
+
+                foreach (var p in stroke.Points)
                 {
-                    var p = stroke.Points[i];
                     double dx = x - p.X;
                     double dy = y - p.Y;
-                    if (dx * dx + dy * dy <= r * r)
-                        stroke.Points.RemoveAt(i);
+                    if (dx * dx + dy * dy > r * r)
+                    {
+                        currentSegment.Add(p);
+                    }
+                    else
+                    {
+                        if (currentSegment.Count > 0)
+                        {
+                            newSegments.Add(new List<Point>(currentSegment));
+                            currentSegment.Clear();
+                        }
+                    }
                 }
-                if (stroke.Points.Count < 2)
+                if (currentSegment.Count > 0)
+                    newSegments.Add(currentSegment);
+
+                // Zamiana na fragmenty
+                if (newSegments.Count == 0)
                     SelectedLayer.Strokes.Remove(stroke);
+                else if (newSegments.Count == 1)
+                {
+                    stroke.Points.Clear(); // zachowanie stroke
+                    stroke.Points.AddRange(newSegments[0]);
+                }
+                else
+                {
+                    int idx = SelectedLayer.Strokes.IndexOf(stroke);
+                    SelectedLayer.Strokes.RemoveAt(idx);
+                    foreach (var seg in newSegments)
+                    {
+                        if (seg.Count > 1)
+                        {
+                            var newStroke = new BrushStroke
+                            {
+                                Points = seg,
+                                StrokeColor = stroke.StrokeColor,
+                                StrokeWidth = stroke.StrokeWidth
+                            };
+                            SelectedLayer.Strokes.Insert(idx++, newStroke);
+                        }
+                    }
+                }
             }
             OnPropertyChanged(nameof(Layers));
         }

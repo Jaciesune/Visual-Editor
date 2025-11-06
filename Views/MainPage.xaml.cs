@@ -30,29 +30,35 @@ namespace VE.Views
         {
             if (BindingContext is VE.ViewModels.MainPageViewModel vm && vm.SelectedLayer != null)
             {
-                // Gumka - wymazuje tylko ze stroke w aktywnej warstwie
                 if (vm.SelectedTool == "Eraser")
                 {
+                    vm.EraserPreviewPosition = e.Location; // wyświetlanie gumki na bieżąco 
                     switch (e.ActionType)
                     {
                         case SKTouchAction.Pressed:
-                        case SKTouchAction.Moved:
-                            // Usuwaj punkty ze stroke, na które najeżdża gumka
-                            RemovePointsUnderEraser(vm, e.Location.X, e.Location.Y, vm.Eraser.Size);
                             vm.IsEraserActive = true;
+                            vm.EraseOnSelectedLayer(e.Location.X, e.Location.Y);
                             vm.EraserPreviewPosition = e.Location;
                             MainCanvas.InvalidateSurface();
+                            break;
+                        case SKTouchAction.Moved:
+                            if (vm.IsEraserActive) // usuwanie po wciśnięciu
+                            {
+                                vm.EraseOnSelectedLayer(e.Location.X, e.Location.Y);
+                                vm.EraserPreviewPosition = e.Location;
+                                MainCanvas.InvalidateSurface();
+                            }
                             break;
                         case SKTouchAction.Released:
                         case SKTouchAction.Cancelled:
                             vm.IsEraserActive = false;
                             break;
                     }
+                    MainCanvas.InvalidateSurface();
                     e.Handled = true;
                     return;
                 }
-
-                // Pędzel
+                // Pędzel:
                 switch (e.ActionType)
                 {
                     case SKTouchAction.Pressed:
@@ -72,28 +78,6 @@ namespace VE.Views
             }
         }
 
-        // Funkcja – usuwa punkty w danym promieniu gumki w warstwie
-        private void RemovePointsUnderEraser(VE.ViewModels.MainPageViewModel vm, double x, double y, double eraserRadius)
-        {
-            foreach (var stroke in vm.SelectedLayer.Strokes.Reverse())
-            {
-                for (int i = stroke.Points.Count - 1; i >= 0; i--)
-                {
-                    var p = stroke.Points[i];
-                    var dx = x - p.X;
-                    var dy = y - p.Y;
-                    double dist = Math.Sqrt(dx * dx + dy * dy);
-                    if (dist <= eraserRadius)
-                    {
-                        stroke.Points.RemoveAt(i);
-                    }
-                }
-                // Jeśli stroke jest pusty – usuń cały
-                if (stroke.Points.Count == 0)
-                    vm.SelectedLayer.Strokes.Remove(stroke);
-            }
-        }
-
         //------ Obsługa Narzędzi ------//
 
         // Działanie Rysowania //
@@ -110,16 +94,14 @@ namespace VE.Views
                 {
                     if (stroke.Points.Count < 2)
                         continue;
-
                     using var paint = new SKPaint
                     {
                         Color = stroke.StrokeColor,
                         Style = SKPaintStyle.Stroke,
                         StrokeCap = SKStrokeCap.Round,
-                        StrokeWidth = stroke.StrokeWidth > 0 ? stroke.StrokeWidth : 4, // umożliwia zmienność grubości
+                        StrokeWidth = stroke.StrokeWidth,
                         IsAntialias = true
                     };
-
                     for (int i = 1; i < stroke.Points.Count; i++)
                     {
                         var p1 = stroke.Points[i - 1];
@@ -128,6 +110,7 @@ namespace VE.Views
                     }
                 }
             }
+
             // Podgląd gumki
             if (vm.SelectedTool == "Eraser")
             {
