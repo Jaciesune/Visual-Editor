@@ -35,15 +35,29 @@ namespace VE.Views
                     switch (e.ActionType)
                     {
                         case SKTouchAction.Pressed:
-                        case SKTouchAction.Moved:
+                            vm.IsEraserActive = true;
                             vm.Strokes.Add(new BrushStroke
                             {
                                 StrokeColor = SKColors.White,
                                 Points = new List<Point> { new Point(e.Location.X, e.Location.Y) },
-                                EraserSize = vm.Eraser.Size // Dodaj pole EraserSize do BrushStroke!
+                                EraserSize = vm.Eraser.Size
                             });
                             break;
+                        case SKTouchAction.Moved:
+                            if (vm.IsEraserActive)
+                                vm.Strokes.Add(new BrushStroke
+                                {
+                                    StrokeColor = SKColors.White,
+                                    Points = new List<Point> { new Point(e.Location.X, e.Location.Y) },
+                                    EraserSize = vm.Eraser.Size
+                                });
+                            break;
+                        case SKTouchAction.Released:
+                        case SKTouchAction.Cancelled:
+                            vm.IsEraserActive = false;
+                            break;
                     }
+                    vm.EraserPreviewPosition = e.Location; // do podglądu!
                     MainCanvas.InvalidateSurface();
                     e.Handled = true;
                     return;
@@ -71,6 +85,7 @@ namespace VE.Views
 
         //------ Obsługa Narzędzi ------//
 
+        // Działanie Rysowania //
         private void MainCanvas_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
             var vm = BindingContext as VE.ViewModels.MainPageViewModel;
@@ -116,7 +131,22 @@ namespace VE.Views
                     canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
                 }
             }
+            if (vm.SelectedTool == "Eraser")
+            {
+                var pos = vm.EraserPreviewPosition; // aktualna pozycja kursora
+                int radius = vm.Eraser.Size;
+                using var borderPaint = new SKPaint
+                {
+                    Color = SKColors.Gray,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 2,
+                    IsAntialias = true
+                };
+                canvas.DrawCircle((float)pos.X, (float)pos.Y, radius, borderPaint);
+            }
         }
+
+        //------ Działanie rysowania ------//
 
         // Obsługa SaveFile //
 

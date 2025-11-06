@@ -40,6 +40,19 @@ namespace VE.ViewModels
 
         // Gumka //
         public EraserSettings Eraser { get; set; } = new EraserSettings();
+        private bool _isEraserActive;
+        public bool IsEraserActive
+        {
+            get => _isEraserActive;
+            set { _isEraserActive = value; OnPropertyChanged(nameof(IsEraserActive)); }
+        }
+
+        private SKPoint _eraserPreviewPosition;
+        public SKPoint EraserPreviewPosition
+        {
+            get => _eraserPreviewPosition;
+            set { _eraserPreviewPosition = value; OnPropertyChanged(nameof(EraserPreviewPosition)); }
+        }
 
         //------ Gumka ------//
 
