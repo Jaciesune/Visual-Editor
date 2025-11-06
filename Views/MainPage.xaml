@@ -7,132 +7,149 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Toolbar -->
             <RowDefinition Height="*"/>
-            <!-- Główna treść -->
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <!-- Panel narzędzi -->
+            <ColumnDefinition Width="220"/>
+            <!-- Panel opcji narzędzi -->
             <ColumnDefinition Width="*"/>
-            <!-- Canvas i warstwy -->
+            <!-- Canvas -->
             <ColumnDefinition Width="300"/>
-            <!-- Panel warstw -->
+            <!-- Warstwy -->
         </Grid.ColumnDefinitions>
 
-        <!-- Pasek narzędzi głównych -->
-        <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="3"
+        <!-- Toolbar -->
+        <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="4"
             Padding="4"
             Spacing="8"
             BackgroundColor="#23262B"
             HeightRequest="48">
             <Button Text="Nowy"
-                TextColor="White"
-                BackgroundColor="#393e46"
-                FontAttributes="Bold"
-                CornerRadius="6"/>
+                    TextColor="White"
+                    BackgroundColor="#393e46"
+                    FontAttributes="Bold"
+                    CornerRadius="6"/>
             <Button Text="Otwórz"
-                TextColor="White"
-                BackgroundColor="#393e46"
-                FontAttributes="Bold"
-                CornerRadius="6"
-                Command="{Binding OpenImageCommand}"/>
+                    TextColor="White"
+                    BackgroundColor="#393e46"
+                    FontAttributes="Bold"
+                    CornerRadius="6"
+                    Command="{Binding OpenImageCommand}"/>
             <Button Text="Zapisz"
-                TextColor="White"
-                BackgroundColor="#393e46"
-                FontAttributes="Bold"
-                CornerRadius="6"
-                Clicked="SaveButton_Clicked"/>
+                    TextColor="White"
+                    BackgroundColor="#393e46"
+                    FontAttributes="Bold"
+                    CornerRadius="6"
+                    Clicked="SaveButton_Clicked"/>
         </HorizontalStackLayout>
 
         <!-- Lewy panel narzędzi rysowania -->
         <StackLayout Grid.Row="1" Grid.Column="0" BackgroundColor="#424242" Padding="18">
-            <!-- Tytuł sekcji narzędzi -->
             <Label Text="Narzędzia"
-           FontAttributes="Bold"
-           FontSize="18"
-           Margin="10,0,10,6"
-           TextColor="White"/>
+                   FontAttributes="Bold"
+                   FontSize="18"
+                   Margin="10,0,10,6"
+                   TextColor="White"/>
 
             <!-- Przyciski narzędzi -->
-            <Button Text="Pędzel" Clicked="ShowBrushOptions"/>
-            <!-- Panel opcji Pędzla -->
-            <AbsoluteLayout HeightRequest="160">
-                <Frame x:Name="BrushOptionsPanel"
-                   AbsoluteLayout.LayoutBounds="0,0,220,150"
-                   AbsoluteLayout.LayoutFlags="None"
-                   IsVisible="False"
-                   HasShadow="True"
-                   BackgroundColor="#626262"
-                   CornerRadius="9"
-                   Padding="10">    
-                <VerticalStackLayout>
-                    <Label Text="Kolor pędzla (RGB):"
-                        FontAttributes="Bold"
-                        Margin="0,0,0,6"
-                        TextColor="#23262B"/>
+            <Button Text="Pędzel"
+                    Command="{Binding ToolButtonClickedCommand}"
+                    CommandParameter="Brush"/>
+            <Button Text="Gumka"
+                    Command="{Binding ToolButtonClickedCommand}"
+                    CommandParameter="Eraser"/>
+            <Button Text="Wiadro"
+                    Command="{Binding ToolButtonClickedCommand}"
+                    CommandParameter="Bucket"/>
+            <Button Text="Pipeta"
+                    Command="{Binding ToolButtonClickedCommand}"
+                    CommandParameter="Pipette"/>
+        </StackLayout>
 
-                    <HorizontalStackLayout Spacing="4">
-                            <Entry Text="{Binding Brush.R, Mode=TwoWay, Converter={StaticResource RgbStringToIntConverter}}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="R"/>
-                            <Entry Text="{Binding Brush.G, Mode=TwoWay, Converter={StaticResource RgbStringToIntConverter}}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="G"/>
-                            <Entry Text="{Binding Brush.B, Mode=TwoWay, Converter={StaticResource RgbStringToIntConverter}}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="B"/>
-                    </HorizontalStackLayout>
+        <!-- Panel opcji narzędzi -->
+        <StackLayout Grid.Row="1" Grid.Column="1" BackgroundColor="#626262" Padding="10">
+            <!-- Dynamiczna zawartość -->
+            <Label Text="{Binding SelectedTool}" FontAttributes="Bold" FontSize="16" Margin="0,0,0,8" TextColor="White"/>
 
-                    <Label Text="Podgląd koloru:"
-                       FontSize="13"
-                       Margin="0,9,0,2"
+            <!-- Dynamiczne opcje zależne od SelectedTool -->
+            <ContentView>
+                <ContentView.Triggers>
+                    <DataTrigger TargetType="ContentView" Binding="{Binding SelectedTool}" Value="Brush">
+                        <Setter Property="Content">
+                            <Setter.Value>
+                                <StackLayout Spacing="8">
+                                    <Label Text="Kolor pędzla (RGB):"
+                                           FontAttributes="Bold"
+                                           TextColor="#23262B"/>
+                                    <HorizontalStackLayout Spacing="4">
+                                        <Entry Text="{Binding Brush.R, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="R"/>
+                                        <Entry Text="{Binding Brush.G, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="G"/>
+                                        <Entry Text="{Binding Brush.B, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="B"/>
+                                    </HorizontalStackLayout>
+                                    <Label Text="Podgląd koloru:" FontSize="13" Margin="0,9,0,2" TextColor="#23262B"/>
+                                    <Frame Padding="0"
+                                           HeightRequest="36"
+                                           WidthRequest="68"
+                                           CornerRadius="7"
+                                           BorderColor="#393e46"
+                                           HasShadow="False"
+                                           VerticalOptions="Start">
+                                        <BoxView Color="{Binding BrushColor}"
+                                                 WidthRequest="60"
+                                                 HeightRequest="28"
+                                                 CornerRadius="6"
+                                                 VerticalOptions="Center"/>
+                                    </Frame>
+                                </StackLayout>
+                            </Setter.Value>
+                        </Setter>
+                    </DataTrigger>
+
+                    <DataTrigger TargetType="ContentView" Binding="{Binding SelectedTool}" Value="Eraser">
+                        <Setter Property="Content">
+                            <Setter.Value>
+                                <StackLayout Spacing="8">
+                                    <Label Text="Opcje gumki:"
+                       FontAttributes="Bold"
                        TextColor="#23262B"/>
-
-                        <Frame Padding="0"
-                           Margin="0,0,0,10"
-                           HeightRequest="36"
-                           WidthRequest="68"
-                           CornerRadius="7"
-                           BorderColor="#393e46"
-                           HasShadow="False"
-                           VerticalOptions="Start">         
-                        <BoxView Color="{Binding BrushColor}"
-                             WidthRequest="60"
-                             HeightRequest="28"
-                             CornerRadius="6"
-                             VerticalOptions="Center"/>
-                        </Frame>
-                    </VerticalStackLayout>
-                </Frame>
-            </AbsoluteLayout>
-
-            <Button Text="Gumka"/>
-            <Button Text="Wiadro"/>
-            <Button Text="Pipeta"/>
+                                    <Slider Minimum="2"
+                        Maximum="40"
+                        Value="{Binding Eraser.Size, Mode=TwoWay}" />
+                                    <Label Text="{Binding Eraser.Size, StringFormat='Rozmiar: {0}'}" FontSize="13"/>
+                                </StackLayout>
+                            </Setter.Value>
+                        </Setter>
+                    </DataTrigger>
+                </ContentView.Triggers>
+            </ContentView>
         </StackLayout>
 
         <!-- Główny Canvas -->
-        <Label Text="{Binding ImageLoadError}" TextColor="Red" FontSize="13"/>
-        <ScrollView Grid.Row="1" Grid.Column="1" Orientation="Both" BackgroundColor="Transparent">
-            <Frame 
-                Margin="10"
-                BackgroundColor="White"
-                BorderColor="#AAAAAA"
-                CornerRadius="4"
-                WidthRequest="700"
-                HeightRequest="450"
-                HorizontalOptions="Center"
-                VerticalOptions="Center">
-
+        <Label Grid.Row="1" Grid.Column="2" Text="{Binding ImageLoadError}" TextColor="Red" FontSize="13"/>
+        <ScrollView Grid.Row="1" Grid.Column="2" Orientation="Both" BackgroundColor="Transparent">
+            <Frame Margin="10"
+                   BackgroundColor="White"
+                   BorderColor="#AAAAAA"
+                   CornerRadius="4"
+                   WidthRequest="700"
+                   HeightRequest="450"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center">
                 <skia:SKCanvasView x:Name="MainCanvas"
-                    PaintSurface="MainCanvas_PaintSurface"
-                    EnableTouchEvents="True"
-                    Touch="MainCanvas_Touch"
-                    WidthRequest="700"
-                    HeightRequest="450"/>
+                                  PaintSurface="MainCanvas_PaintSurface"
+                                  EnableTouchEvents="True"
+                                  Touch="MainCanvas_Touch"
+                                  WidthRequest="700"
+                                  HeightRequest="450"/>
             </Frame>
         </ScrollView>
 
         <!-- Panel warstw -->
-        <StackLayout Grid.Row="1" Grid.Column="2" BackgroundColor="#525252" Padding="8">
+        <StackLayout Grid.Row="1" Grid.Column="3" BackgroundColor="#525252" Padding="8">
             <Label Text="Warstwy" FontAttributes="Bold"/>
             <ListView>
-                <!-- Placeholder -->
                 <ListView.ItemsSource>
                     <x:Array Type="{x:Type x:String}">
                         <x:String>Tło</x:String>

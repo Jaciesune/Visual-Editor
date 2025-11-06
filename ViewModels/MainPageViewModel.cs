@@ -24,6 +24,25 @@ namespace VE.ViewModels
 
         }
 
+        // Obsługa opcji narzędzi //
+
+        public string SelectedTool { get; set; }
+        public View ToolOptionsView { get; set; }
+
+        public ICommand ToolButtonClickedCommand => new Command<string>(tool =>
+        {
+            SelectedTool = tool;
+            OnPropertyChanged(nameof(SelectedTool));
+            OnPropertyChanged(nameof(ToolOptionsView));
+        });
+
+        //------ Narzędzia ------//
+
+        // Gumka //
+        public EraserSettings Eraser { get; set; } = new EraserSettings();
+
+        //------ Gumka ------//
+
         // Obsługa BrushStroke //
         public ObservableCollection<BrushStroke> Strokes { get; } = new();
 

@@ -3,6 +3,8 @@ using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using VE.ViewModels;
+using VE.Models;
+
 
 #if WINDOWS
 using Microsoft.UI.Xaml.Controls;
@@ -22,27 +24,32 @@ namespace VE.Views
             BindingContext = new VE.ViewModels.MainPageViewModel();
         }
 
-        private bool _brushOpen = false;
-        private async void ShowBrushOptions(object sender, EventArgs e)
-        {
-            if (_brushOpen)
-            {
-                await BrushOptionsPanel.TranslateTo(-200, 0, 170, Easing.CubicIn); // chowamy w lewo
-                BrushOptionsPanel.IsVisible = false;
-                _brushOpen = false;
-            }
-            else
-            {
-                BrushOptionsPanel.TranslationX = -200;
-                BrushOptionsPanel.IsVisible = true;
-                await BrushOptionsPanel.TranslateTo(0, 0, 230, Easing.CubicOut); // wjeżdża z lewej
-                _brushOpen = true;
-            }
-        }
+        // Obsługa Narzędzi //
         private void MainCanvas_Touch(object sender, SKTouchEventArgs e)
         {
             if (BindingContext is VE.ViewModels.MainPageViewModel vm)
             {
+                // Gumka
+                if (vm.SelectedTool == "Eraser")
+                {
+                    switch (e.ActionType)
+                    {
+                        case SKTouchAction.Pressed:
+                        case SKTouchAction.Moved:
+                            vm.Strokes.Add(new BrushStroke
+                            {
+                                StrokeColor = SKColors.White,
+                                Points = new List<Point> { new Point(e.Location.X, e.Location.Y) },
+                                EraserSize = vm.Eraser.Size // Dodaj pole EraserSize do BrushStroke!
+                            });
+                            break;
+                    }
+                    MainCanvas.InvalidateSurface();
+                    e.Handled = true;
+                    return;
+                }
+
+                // Pędzel:
                 switch (e.ActionType)
                 {
                     case SKTouchAction.Pressed:
@@ -62,6 +69,8 @@ namespace VE.Views
             }
         }
 
+        //------ Obsługa Narzędzi ------//
+
         private void MainCanvas_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
             var vm = BindingContext as VE.ViewModels.MainPageViewModel;
@@ -72,6 +81,22 @@ namespace VE.Views
 
             foreach (var stroke in vm.Strokes)
             {
+                if (stroke.EraserSize > 0)
+                {
+                    using var eraserPaint = new SKPaint
+                    {
+                        Color = SKColors.White,
+                        Style = SKPaintStyle.Fill,
+                        IsAntialias = true
+                    };
+
+                    foreach (var p in stroke.Points)
+                    {
+                        canvas.DrawCircle((float)p.X, (float)p.Y, stroke.EraserSize, eraserPaint);
+                    }
+                    continue;
+                }
+
                 if (stroke.Points.Count < 2)
                     continue;
 
