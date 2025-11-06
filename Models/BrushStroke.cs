@@ -11,6 +11,6 @@ namespace VE.Models
     {
         public List<Point> Points { get; set; } = new();
         public SKColor StrokeColor { get; set; }
-        public int EraserSize {get; set; }
+        public float StrokeWidth { get; set; } = 4;
     }
 }

@@ -16,14 +16,12 @@ namespace VE.Models
             get => _size;
             set
             {
-                // Zabezpieczenie przed wyjściem poza zakres
                 if (value < 2) value = 2;
                 if (value > 40) value = 40;
                 _size = value;
                 OnPropertyChanged();
             }
         }
-
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
