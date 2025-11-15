@@ -154,14 +154,14 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Frame
-                Padding="0"
-                Margin="0,6,0,0"
-                BackgroundColor="{Binding ., Converter={StaticResource SelectedLayerColorConverter}, ConverterParameter={x:Reference MainPageRoot}}"
-                BorderColor="#23262B"
-                HasShadow="False"
-                CornerRadius="9"
-                HeightRequest="52"
-            >
+                            Padding="0"
+                            Margin="0,6,0,0"
+                            BackgroundColor="{Binding IsSelected, Converter={StaticResource IsSelectedToColorConverter}}"
+                            BorderColor="#23262B"
+                            HasShadow="False"
+                            CornerRadius="9"
+                            HeightRequest="52"
+                        >
                             <Frame.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding BindingContext.SelectLayerCommand, Source={x:Reference MainPageRoot}}" CommandParameter="{Binding .}" />
                             </Frame.GestureRecognizers>

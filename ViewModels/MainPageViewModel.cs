@@ -29,6 +29,10 @@ namespace VE.ViewModels
         // Warstwy //
         public ICommand SelectLayerCommand => new Command<Layer>(layer =>
         {
+            foreach (var l in Layers)
+                l.IsSelected = false;
+            if (layer != null)
+                layer.IsSelected = true;
             SelectedLayer = layer;
         });
         public ICommand ToggleLayerVisibilityCommand { get; }
@@ -89,10 +93,19 @@ namespace VE.ViewModels
                 if (_selectedLayer != value)
                 {
                     _selectedLayer = value;
-                    Console.WriteLine("SELECTED: " + value?.Name);
                     OnPropertyChanged(nameof(SelectedLayer));
+                    OnPropertyChanged(nameof(Layers));
+                    // wymuszenioe ponownego renderowania warstw
+                    foreach (var layer in Layers)
+                        OnPropertyChangedForLayer(layer);
                 }
             }
+        }
+
+        private void OnPropertyChangedForLayer(Layer layer)
+        {
+            var temp = layer.Name;
+            layer.Name = temp;
         }
 
         //------ Warstwy ------//

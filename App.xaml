@@ -21,6 +21,7 @@
             <tools:BoolToEyeIconConverter x:Key="BoolToEyeIconConverter"/>
             <tools:BackgroundDeleteBlockerConverter x:Key="BackgroundDeleteBlockerConverter" />
             <tools:SelectedLayerColorConverter x:Key="SelectedLayerColorConverter" />
+            <tools:IsSelectedToColorConverter x:Key="IsSelectedToColorConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
