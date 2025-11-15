@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SkiaSharp.Views.Maui.Controls.Hosting;
+using CommunityToolkit.Maui;
 
 namespace VE
 {
@@ -11,6 +12,7 @@ namespace VE
             builder
                 .UseMauiApp<App>()
                 .UseSkiaSharp()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

@@ -256,6 +256,21 @@ namespace VE.ViewModels
             set { _canvasImage = value; OnPropertyChanged(nameof(CanvasImage)); }
         }
 
+        // Color Picker //
+
+        public ICommand SetColorCommand => new Command<string>(hex =>
+        {
+            var color = Color.FromArgb(hex);
+            Brush.R = (int)(color.Red * 255);
+            Brush.G = (int)(color.Green * 255);
+            Brush.B = (int)(color.Blue * 255);
+        });
+
+        //--- Color Picker ---//
+
+
+        //------ Pędzel ------//
+
         // OpenImage Command //
         public ICommand OpenImageCommand { get; }
 

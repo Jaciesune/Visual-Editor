@@ -89,6 +89,131 @@
                                         <Entry Text="{Binding Brush.G, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="G"/>
                                         <Entry Text="{Binding Brush.B, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="B"/>
                                     </HorizontalStackLayout>
+
+                                    <!-- SUWAKI RGB -->
+                                    <Label Text="Suwaki koloru:" FontAttributes="Bold" Margin="0,6,0,3" TextColor="#23262B"/>
+                                    <StackLayout Spacing="6">
+                                        <Border 
+                                            Stroke="#939393" 
+                                            StrokeThickness="1" 
+                                            Background="#f2f2f2" 
+                                            StrokeShape="RoundRectangle 10">
+                                            <Label 
+                                                Text="Czerwony (R)" 
+                                                FontSize="13" 
+                                                TextColor="Red" 
+                                                BackgroundColor="LightGray" 
+                                                Padding="2,2,2,2"
+                                            />
+                                        </Border>
+                                        <Slider 
+                                            Minimum="0" 
+                                            Maximum="255" 
+                                            Value="{Binding Brush.R, Mode=TwoWay}" 
+                                            MinimumTrackColor="#c0392b" 
+                                            MaximumTrackColor="#eee"
+                                        />
+
+                                        <Border 
+                                            Stroke="#939393" 
+                                            StrokeThickness="1" 
+                                            Background="#f2f2f2" 
+                                            StrokeShape="RoundRectangle 10">
+                                            <Label 
+                                                Text="Zielony (G)" 
+                                                FontSize="13" 
+                                                TextColor="Green" 
+                                                BackgroundColor="LightGray" 
+                                                Padding="2,2,2,2"
+                                            />
+                                        </Border>
+                                        <Slider 
+                                            Minimum="0" 
+                                            Maximum="255" 
+                                            Value="{Binding Brush.G, Mode=TwoWay}" 
+                                            MinimumTrackColor="#27ae60" 
+                                            MaximumTrackColor="#eee"
+                                        />
+
+                                        <Border 
+                                            Stroke="#939393" 
+                                            StrokeThickness="1" 
+                                            Background="#f2f2f2" 
+                                            StrokeShape="RoundRectangle 10">
+                                            <Label 
+                                                Text="Niebieski (B)" 
+                                                FontSize="13" 
+                                                TextColor="Blue" 
+                                                BackgroundColor="LightGray" 
+                                                Padding="2,2,2,2"
+                                            />
+                                        </Border>
+                                        <Slider 
+                                            Minimum="0" 
+                                            Maximum="255" 
+                                            Value="{Binding Brush.B, Mode=TwoWay}" 
+                                            MinimumTrackColor="#2980b9" 
+                                            MaximumTrackColor="#eee"
+                                        />
+                                    </StackLayout>
+                                    
+                                    <!-- Grid gotowych kolorów -->
+                                    <Label Text="Paleta kolorów:" FontAttributes="Bold" Margin="0,4,0,2" TextColor="#23262B"/>
+
+                                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
+                                        <BoxView BackgroundColor="#FF0000" WidthRequest="32" HeightRequest="32" Margin="2">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SetColorCommand}" CommandParameter="#FF0000"/>
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+                                        <BoxView BackgroundColor="#00FF00" Grid.Column="1" WidthRequest="32" HeightRequest="32" Margin="2">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SetColorCommand}" CommandParameter="#00FF00"/>
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+                                        <BoxView BackgroundColor="#0000FF" Grid.Column="2" WidthRequest="32" HeightRequest="32" Margin="2">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SetColorCommand}" CommandParameter="#0000FF"/>
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+                                        <BoxView BackgroundColor="#FFFF00" Grid.Column="3" WidthRequest="32" HeightRequest="32" Margin="2">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SetColorCommand}" CommandParameter="#FFFF00"/>
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+                                        <BoxView BackgroundColor="#FF00FF" Grid.Column="4" WidthRequest="32" HeightRequest="32" Margin="2">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SetColorCommand}" CommandParameter="#FF00FF"/>
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+
+                                        <BoxView BackgroundColor="#00FFFF" Grid.Row="1" WidthRequest="32" HeightRequest="32" Margin="2">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SetColorCommand}" CommandParameter="#00FFFF"/>
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+                                        <BoxView BackgroundColor="#808080" Grid.Row="1" Grid.Column="1" WidthRequest="32" HeightRequest="32" Margin="2">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SetColorCommand}" CommandParameter="#808080"/>
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+                                        <BoxView BackgroundColor="#FFFFFF" Grid.Row="1" Grid.Column="2" WidthRequest="32" HeightRequest="32" Margin="2">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SetColorCommand}" CommandParameter="#FFFFFF"/>
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+                                        <BoxView BackgroundColor="#000000" Grid.Row="1" Grid.Column="3" WidthRequest="32" HeightRequest="32" Margin="2">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SetColorCommand}" CommandParameter="#000000"/>
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+                                        <BoxView BackgroundColor="#C0C0C0" Grid.Row="1" Grid.Column="4" WidthRequest="32" HeightRequest="32" Margin="2">
+                                            <BoxView.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding SetColorCommand}" CommandParameter="#C0C0C0"/>
+                                            </BoxView.GestureRecognizers>
+                                        </BoxView>
+                                    </Grid>
+
                                     <Label Text="Podgląd koloru:" FontSize="13" Margin="0,9,0,2" TextColor="#23262B"/>
                                     <Frame Padding="0"
                                            HeightRequest="36"
