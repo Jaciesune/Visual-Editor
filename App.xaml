@@ -18,6 +18,7 @@
         </Style>
         <ResourceDictionary>
             <tools:RgbStringToIntConverter x:Key="RgbStringToIntConverter"/>
+            <tools:BoolToEyeIconConverter x:Key="BoolToEyeIconConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

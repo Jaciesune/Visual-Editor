@@ -20,10 +20,62 @@ namespace VE.ViewModels
             Brush.PropertyChanged += (s, e) => OnPropertyChanged(nameof(BrushColor));
             OpenImageCommand = new Command(async () => await OpenImageAsync());
             SaveImageCommand = new Command(async () => await SaveImage());
+            AddLayerCommand = new Command(AddLayer);
+            ToggleLayerVisibilityCommand = new Command<Layer>(ToggleLayerVisibility);
+            RemoveLayerCommand = new Command<Layer>(RemoveLayer);
 
         }
 
         // Warstwy //
+
+        public ICommand ToggleLayerVisibilityCommand { get; }
+        public ICommand RemoveLayerCommand { get; }
+
+        public ICommand AddLayerCommand { get; }
+
+        // Dodanie warstwy //
+
+        private void AddLayer()
+        {
+            var newLayer = new Layer
+            {
+                Name = $"Warstwa {Layers.Count}",
+                IsVisible = true
+            };
+            Layers.Add(newLayer);
+            SelectedLayer = newLayer;
+            OnPropertyChanged(nameof(Layers));
+        }
+
+        //--- Dodanie warstwy ---//
+
+        // Ukrycie warstwy //
+
+        private void ToggleLayerVisibility(Layer layer)
+        {
+            if (layer != null)
+            {
+                layer.IsVisible = !layer.IsVisible;
+                OnPropertyChanged(nameof(Layers));
+            }
+        }
+
+        //--- Ukrycie warstwy ---//
+
+        //Usunięcie warstwy //
+
+        private void RemoveLayer(Layer layer)
+        {
+            if (layer != null && Layers.Count > 1)
+            {
+                Layers.Remove(layer);
+                if (SelectedLayer == layer)
+                    SelectedLayer = Layers.FirstOrDefault();
+                OnPropertyChanged(nameof(Layers));
+            }
+        }
+
+        //--- Usunięcie warstwy ---//
 
         public ObservableCollection<Layer> Layers { get; set; } = new();
         private Layer _selectedLayer;
