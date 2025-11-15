@@ -27,7 +27,10 @@ namespace VE.ViewModels
         }
 
         // Warstwy //
-
+        public ICommand SelectLayerCommand => new Command<Layer>(layer =>
+        {
+            SelectedLayer = layer;
+        });
         public ICommand ToggleLayerVisibilityCommand { get; }
         public ICommand RemoveLayerCommand { get; }
         public ICommand AddLayerCommand { get; }
@@ -81,7 +84,15 @@ namespace VE.ViewModels
         public Layer SelectedLayer
         {
             get => _selectedLayer;
-            set { _selectedLayer = value; OnPropertyChanged(nameof(SelectedLayer)); }
+            set
+            {
+                if (_selectedLayer != value)
+                {
+                    _selectedLayer = value;
+                    Console.WriteLine("SELECTED: " + value?.Name);
+                    OnPropertyChanged(nameof(SelectedLayer));
+                }
+            }
         }
 
         //------ Warstwy ------//

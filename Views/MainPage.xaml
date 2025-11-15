@@ -149,30 +149,68 @@
 
         <!-- Panel warstw -->
         <StackLayout Grid.Row="1" Grid.Column="3" BackgroundColor="#525252" Padding="8">
-            <Label Text="Warstwy" FontAttributes="Bold"/>
-            <ListView ItemsSource="{Binding Layers}" SelectedItem="{Binding SelectedLayer}">
-                <ListView.ItemTemplate>
+            <Label Text="Warstwy" FontAttributes="Bold" TextColor="White"/>
+            <CollectionView ItemsSource="{Binding Layers}">
+                <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <StackLayout Orientation="Horizontal" Spacing="6">
-                            <Label Text="{Binding Name}" WidthRequest="90" />
-                            <Button Text="{Binding IsVisible, Converter={StaticResource BoolToEyeIconConverter}}" 
-                                Command="{Binding DataContext.ToggleLayerVisibilityCommand, Source={x:Reference MainPageRoot}}" 
-                                CommandParameter="{Binding .}" WidthRequest="30" />
-                            <Button Text="Usuń"
-                                Command="{Binding DataContext.RemoveLayerCommand, Source={x:Reference MainPageRoot}}"
-                                CommandParameter="{Binding .}" 
-                                WidthRequest="43" 
-                                IsEnabled="{Binding Name, Converter={StaticResource BackgroundDeleteBlockerConverter}}"
-                            />
-                        </StackLayout>
+                        <Frame
+                Padding="0"
+                Margin="0,6,0,0"
+                BackgroundColor="{Binding ., Converter={StaticResource SelectedLayerColorConverter}, ConverterParameter={x:Reference MainPageRoot}}"
+                BorderColor="#23262B"
+                HasShadow="False"
+                CornerRadius="9"
+                HeightRequest="52"
+            >
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding BindingContext.SelectLayerCommand, Source={x:Reference MainPageRoot}}" CommandParameter="{Binding .}" />
+                            </Frame.GestureRecognizers>
+                            <Grid ColumnDefinitions="90,38,48" Padding="10" VerticalOptions="CenterAndExpand">
+                                <Label Text="{Binding Name}" Grid.Column="0" TextColor="White" FontAttributes="Bold" FontSize="16"/>
+                                <Button
+                                    Grid.Column="1"
+                                    Text="{Binding IsVisible, Converter={StaticResource BoolToEyeIconConverter}}"
+                                    Command="{Binding BindingContext.ToggleLayerVisibilityCommand, Source={x:Reference MainPageRoot}}"
+                                    CommandParameter="{Binding .}"
+                                    FontFamily="Segoe UI Emoji"
+                                    FontSize="19"
+                                    WidthRequest="38"
+                                    HeightRequest="38"
+                                    BackgroundColor="#393E46"
+                                    TextColor="White"
+                                    CornerRadius="6"
+                                    Padding="0"
+                                />
+                                <Button
+                                    Grid.Column="2"
+                                    Text="Usuń"
+                                    TextColor="White"
+                                    FontSize="15"
+                                    BackgroundColor="#393E46"
+                                    Command="{Binding BindingContext.RemoveLayerCommand, Source={x:Reference MainPageRoot}}"
+                                    CommandParameter="{Binding .}" 
+                                    WidthRequest="48"
+                                    HeightRequest="38"
+                                    IsEnabled="{Binding Name, Converter={StaticResource BackgroundDeleteBlockerConverter}}"
+                                    CornerRadius="6"
+                                    Padding="0"
+                                />
+                            </Grid>
+                        </Frame>
                     </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
             <Button 
                 Text="Dodaj warstwę" 
                 Margin="0,10,0,0"
                 Command="{Binding AddLayerCommand}"
-                />
+                BackgroundColor="#393E46"
+                TextColor="White"
+                FontAttributes="Bold"
+                CornerRadius="6"
+                HeightRequest="50"
+                FontSize="17"
+            />
         </StackLayout>
     </Grid>
 </ContentPage>
