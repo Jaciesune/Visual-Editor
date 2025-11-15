@@ -156,11 +156,14 @@
                         <StackLayout Orientation="Horizontal" Spacing="6">
                             <Label Text="{Binding Name}" WidthRequest="90" />
                             <Button Text="{Binding IsVisible, Converter={StaticResource BoolToEyeIconConverter}}" 
-                                Command="{Binding DataContext.ToggleLayerVisibilityCommand, Source={x:Reference Name=MainPageRoot}}" 
+                                Command="{Binding DataContext.ToggleLayerVisibilityCommand, Source={x:Reference MainPageRoot}}" 
                                 CommandParameter="{Binding .}" WidthRequest="30" />
                             <Button Text="Usuń"
-                                Command="{Binding DataContext.RemoveLayerCommand, Source={x:Reference Name=MainPageRoot}}"
-                                CommandParameter="{Binding .}" WidthRequest="43" />
+                                Command="{Binding DataContext.RemoveLayerCommand, Source={x:Reference MainPageRoot}}"
+                                CommandParameter="{Binding .}" 
+                                WidthRequest="43" 
+                                IsEnabled="{Binding Name, Converter={StaticResource BackgroundDeleteBlockerConverter}}"
+                            />
                         </StackLayout>
                     </DataTemplate>
                 </ListView.ItemTemplate>

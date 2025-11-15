@@ -30,7 +30,6 @@ namespace VE.ViewModels
 
         public ICommand ToggleLayerVisibilityCommand { get; }
         public ICommand RemoveLayerCommand { get; }
-
         public ICommand AddLayerCommand { get; }
 
         // Dodanie warstwy //

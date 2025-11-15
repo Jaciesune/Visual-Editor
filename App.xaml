@@ -19,6 +19,7 @@
         <ResourceDictionary>
             <tools:RgbStringToIntConverter x:Key="RgbStringToIntConverter"/>
             <tools:BoolToEyeIconConverter x:Key="BoolToEyeIconConverter"/>
+            <tools:BackgroundDeleteBlockerConverter x:Key="BackgroundDeleteBlockerConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
