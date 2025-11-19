@@ -216,7 +216,8 @@ namespace VE.ViewModels
             _currentStroke = new BrushStroke
             {
                 StrokeColor = new SKColor((byte)Brush.R, (byte)Brush.G, (byte)Brush.B),
-                StrokeWidth = 4
+                StrokeWidth = 4,
+                TipType = Brush.TipType
             };
             SelectedLayer.Strokes.Add(_currentStroke);
             OnPropertyChanged(nameof(Layers));

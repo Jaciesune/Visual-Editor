@@ -98,7 +98,7 @@ namespace VE.Views
 
                     for (int i = 1; i < stroke.Points.Count; i++)
                     {
-                        using var paint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, tipType);
+                        using var paint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, stroke.TipType);
 
                         var p1 = stroke.Points[i - 1];
                         var p2 = stroke.Points[i];

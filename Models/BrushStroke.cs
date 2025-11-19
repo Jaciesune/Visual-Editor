@@ -12,5 +12,7 @@ namespace VE.Models
         public List<Point> Points { get; set; } = new();
         public SKColor StrokeColor { get; set; }
         public float StrokeWidth { get; set; } = 4;
+        public BrushSettings.BrushTipType TipType { get; set; }
+
     }
 }
