@@ -98,6 +98,69 @@
                                         SelectedItem="{Binding Brush.TipType, Mode=TwoWay}">
                                     </Picker>
 
+                                    <!-- Ustawienia wielkości pędzla -->
+                                    <StackLayout x:Name="BrushSizePanel" Spacing="6">
+                                        <StackLayout.Triggers>
+                                            <DataTrigger 
+                                                TargetType="StackLayout"
+                                                Binding="{Binding Brush.TipType}" 
+                                                Value="Spray">
+                                                <Setter Property="IsVisible" Value="True"/>
+                                            </DataTrigger>
+                                            <DataTrigger 
+                                                TargetType="StackLayout"
+                                                Binding="{Binding Brush.TipType}" 
+                                                Value="Marker">
+                                                <Setter Property="IsVisible" Value="True"/>
+                                            </DataTrigger>
+                                            <DataTrigger 
+                                                TargetType="StackLayout"
+                                                Binding="{Binding Brush.TipType}" 
+                                                Value="Brush">
+                                                <Setter Property="IsVisible" Value="True"/>
+                                            </DataTrigger>
+                                            <DataTrigger 
+                                                TargetType="StackLayout"
+                                                Binding="{Binding Brush.TipType}" 
+                                                Value="Pencil">
+                                                <Setter Property="IsVisible" Value="True"/>
+                                            </DataTrigger>
+                                        </StackLayout.Triggers>
+                                        <Label 
+                                            Text="{Binding Brush.TipType, StringFormat='Rozmiar końcówki ({0}):'}"
+                                            FontSize="13" 
+                                            TextColor="#23262B"/>
+                                        <Slider 
+                                            Minimum="2" 
+                                            Maximum="40" 
+                                            Value="{Binding Brush.Size, Mode=TwoWay}" />
+                                        <Label 
+                                            Text="{Binding Brush.Size, StringFormat='Aktualny rozmiar: {0}'}" 
+                                            FontSize="13"/>
+                                    </StackLayout>
+                                    
+                                    <!-- Ustawienie gęstości spray -->
+                                    <StackLayout x:Name="SprayDensityPanel" Spacing="6">
+                                        <StackLayout.Triggers>
+                                            <DataTrigger 
+                                                TargetType="StackLayout"
+                                                Binding="{Binding Brush.TipType}" 
+                                                Value="Spray">
+                                                <Setter Property="IsVisible" Value="True"/>
+                                            </DataTrigger>
+                                        </StackLayout.Triggers>
+                                        <Label 
+                                            Text="Gęstość spray:" 
+                                            FontSize="13"/>
+                                        <Slider 
+                                            Minimum="5" 
+                                            Maximum="40" 
+                                            Value="{Binding Brush.SprayDensity, Mode=TwoWay}" />
+                                        <Label 
+                                            Text="{Binding Brush.SprayDensity, StringFormat='Aktualna gęstość: {0}'}" 
+                                            FontSize="13"/>
+                                    </StackLayout>
+
                                     <!-- SUWAKI RGB -->
                                     <Label Text="Suwaki koloru:" FontAttributes="Bold" Margin="0,6,0,3" TextColor="#23262B"/>
                                     <StackLayout Spacing="6">

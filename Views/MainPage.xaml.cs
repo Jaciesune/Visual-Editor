@@ -7,6 +7,8 @@ using VE.Models;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.Maui.Graphics;
+
 
 #if WINDOWS
 using Microsoft.UI.Xaml.Controls;
@@ -92,17 +94,42 @@ namespace VE.Views
             {
                 foreach (var stroke in layer.Strokes)
                 {
-                    if (stroke.Points.Count < 2)
-                        continue;
-                    var tipType = vm.Brush.TipType;
+                    var tipType = stroke.TipType;
 
-                    for (int i = 1; i < stroke.Points.Count; i++)
+                    if (tipType == BrushSettings.BrushTipType.Spray)
                     {
-                        using var paint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, stroke.TipType);
+                        using var paint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, tipType);
+                        foreach (var sprayPt in stroke.SprayPoints)
+                        {
+                            canvas.DrawCircle(sprayPt.Item1.X, sprayPt.Item1.Y, sprayPt.Item2, paint);
+                        }
+                    }
+                    else if (tipType == BrushSettings.BrushTipType.Marker)
+                    {
+                        if (stroke.Points.Count < 2) continue;
+                        using var paint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, tipType);
+                        for (int i = 1; i < stroke.Points.Count; i++)
+                        {
+                            var p1 = stroke.Points[i - 1];
+                            var p2 = stroke.Points[i];
+                            canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
+                        }
 
-                        var p1 = stroke.Points[i - 1];
-                        var p2 = stroke.Points[i];
-                        canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
+                        using var circlePaint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, tipType);
+                        circlePaint.Style = SKPaintStyle.Fill;
+                        canvas.DrawCircle((float)stroke.Points.First().X, (float)stroke.Points.First().Y, stroke.StrokeWidth * 1.5f, circlePaint);
+                        canvas.DrawCircle((float)stroke.Points.Last().X, (float)stroke.Points.Last().Y, stroke.StrokeWidth * 1.5f, circlePaint);
+                    }
+                    else
+                    {
+                        if (stroke.Points.Count < 2) continue;
+                        for (int i = 1; i < stroke.Points.Count; i++)
+                        {
+                            using var paint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, tipType);
+                            var p1 = stroke.Points[i - 1];
+                            var p2 = stroke.Points[i];
+                            canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
+                        }
                     }
                 }
             }
@@ -148,6 +175,16 @@ namespace VE.Views
                 case BrushSettings.BrushTipType.Crayon:
                     paint.IsAntialias = false;
                     paint.PathEffect = SKPathEffect.CreateDash(new float[] { 7, 3 }, 0); // efekt przerywanej lub ziarnistej
+                    break;
+                case BrushSettings.BrushTipType.Marker:
+                    paint.Color = color.WithAlpha(120); // lekka transparencja
+                    paint.StrokeWidth = width * 3;
+                    paint.StrokeCap = SKStrokeCap.Round;
+                    paint.Style = SKPaintStyle.Stroke;
+                    break;
+                case BrushSettings.BrushTipType.Spray:
+                    paint.Style = SKPaintStyle.Fill;
+                    paint.StrokeWidth = width;
                     break;
             }
             return paint;

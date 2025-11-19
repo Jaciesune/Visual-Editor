@@ -151,6 +151,14 @@ namespace VE.ViewModels
 
             foreach (var stroke in SelectedLayer.Strokes.Reverse().ToList())
             {
+                if (stroke.TipType == BrushSettings.BrushTipType.Spray)
+                {
+                    stroke.SprayPoints.RemoveAll(pt =>
+                        Math.Pow(pt.Item1.X - x, 2) + Math.Pow(pt.Item1.Y - y, 2) < r * r);
+                    if (stroke.SprayPoints.Count == 0)
+                        SelectedLayer.Strokes.Remove(stroke);
+                    continue;
+                }
                 var newSegments = new List<List<Point>>();
                 var currentSegment = new List<Point>();
 
@@ -225,7 +233,28 @@ namespace VE.ViewModels
         public void AddStrokePointOnSelectedLayer(double x, double y)
         {
             if (_currentStroke == null) return;
-            _currentStroke.Points.Add(new Point(x, y));
+
+            // SPRAY
+            if (Brush.TipType == BrushSettings.BrushTipType.Spray)
+            {
+                int density = Brush.SprayDensity > 0 ? Brush.SprayDensity : 10;
+                var rand = new Random();
+                for (int i = 0; i < density; i++)
+                {
+                    float dx = (float)(rand.NextDouble() - 0.5) * Brush.Size;
+                    float dy = (float)(rand.NextDouble() - 0.5) * Brush.Size;
+                    float radius = 1.1f;
+                    var pt = new SKPoint((float)x + dx, (float)y + dy);
+                    _currentStroke.SprayPoints.Add(new Tuple<SKPoint, float>(pt, radius));
+                }
+            }
+
+            // MARKER I INNE
+            else
+            {
+                _currentStroke.Points.Add(new Point(x, y));
+            }
+
             OnPropertyChanged(nameof(Layers));
         }
         public void EndStrokeOnSelectedLayer()
@@ -275,7 +304,9 @@ namespace VE.ViewModels
         {
             BrushSettings.BrushTipType.Pencil,
             BrushSettings.BrushTipType.Brush,
-            BrushSettings.BrushTipType.Crayon
+            BrushSettings.BrushTipType.Crayon,
+            BrushSettings.BrushTipType.Marker,
+            BrushSettings.BrushTipType.Spray,
         };
 
         //--- BrushTipType ---//

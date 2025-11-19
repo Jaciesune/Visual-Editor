@@ -36,6 +36,22 @@ namespace VE.Models
             Pencil,
             Brush,
             Crayon,
+            Marker,
+            Spray
+        }
+
+        private int _sprayDensity = 12;
+        public int SprayDensity
+        {
+            get => _sprayDensity;
+            set { _sprayDensity = value; OnPropertyChanged(); }
+        }
+
+        private float _size = 8;
+        public float Size
+        {
+            get => _size;
+            set { _size = value; OnPropertyChanged(); }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

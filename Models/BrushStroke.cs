@@ -13,6 +13,7 @@ namespace VE.Models
         public SKColor StrokeColor { get; set; }
         public float StrokeWidth { get; set; } = 4;
         public BrushSettings.BrushTipType TipType { get; set; }
+        public List<Tuple<SKPoint, float>> SprayPoints { get; set; } = new();
 
     }
 }
