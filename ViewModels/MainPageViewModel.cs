@@ -367,5 +367,38 @@ namespace VE.ViewModels
             data.SaveTo(stream);
         }
         //------ SaveImage Command ------//
+
+        // NewProjectCommand //
+
+        public ICommand NewProjectCommand => new Command(async () => await NewProjectAsync());
+
+        private async Task NewProjectAsync()
+        {
+            // Sprawdzenie czy jest na warstwach coś do zapisania
+            bool hasContent = Layers.Any(l => l.Strokes.Count > 0);
+
+            if (hasContent)
+            {
+                // Pokazanie pytania użytkownikowi czy kontynuować
+                var answer = await Application.Current.MainPage.DisplayAlert(
+                    "Nowy projekt",
+                    "Na bieżącym płótnie są niezapisane zmiany. Czy chcesz utworzyć nowy projekt bez zapisu?",
+                    "Tak",
+                    "Anuluj");
+
+                if (!answer)
+                    return; // Przerwanie jeśli wybrał anuluj
+            }
+
+            // Tworzenie nowej pustej warstwy "Tło"
+            Layers.Clear();
+            Layers.Add(new Layer { Name = "Tło", IsVisible = true });
+            SelectedLayer = Layers.First();
+
+            // Czyszczenie podgląd, obraz itp:
+            CanvasImage = null;
+        }
+
+        //------ NewProjectCommand ------/
     }
 }

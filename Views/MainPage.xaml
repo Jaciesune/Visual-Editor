@@ -28,6 +28,7 @@
             BackgroundColor="#23262B"
             HeightRequest="48">
             <Button Text="Nowy"
+                    Command="{Binding NewProjectCommand}"
                     TextColor="White"
                     BackgroundColor="#393e46"
                     FontAttributes="Bold"
