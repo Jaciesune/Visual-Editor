@@ -268,6 +268,16 @@ namespace VE.ViewModels
 
         //--- Color Picker ---//
 
+        // BrushTipType //
+
+        public ObservableCollection<BrushSettings.BrushTipType> BrushTipTypes { get; } = new ObservableCollection<BrushSettings.BrushTipType>
+        {
+            BrushSettings.BrushTipType.Pencil,
+            BrushSettings.BrushTipType.Brush,
+            BrushSettings.BrushTipType.Crayon
+        };
+
+        //--- BrushTipType ---//
 
         //------ Pędzel ------//
 

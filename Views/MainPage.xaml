@@ -91,6 +91,13 @@
                                         <Entry Text="{Binding Brush.B, Mode=TwoWay}" WidthRequest="40" MaxLength="3" Keyboard="Numeric" Placeholder="B"/>
                                     </HorizontalStackLayout>
 
+                                    <!-- Wybór końcówki -->
+                                    <Picker
+                                        Title="Typ pędzla"
+                                        ItemsSource="{Binding BrushTipTypes}" 
+                                        SelectedItem="{Binding Brush.TipType, Mode=TwoWay}">
+                                    </Picker>
+
                                     <!-- SUWAKI RGB -->
                                     <Label Text="Suwaki koloru:" FontAttributes="Bold" Margin="0,6,0,3" TextColor="#23262B"/>
                                     <StackLayout Spacing="6">

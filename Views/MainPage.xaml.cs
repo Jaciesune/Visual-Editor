@@ -94,16 +94,12 @@ namespace VE.Views
                 {
                     if (stroke.Points.Count < 2)
                         continue;
-                    using var paint = new SKPaint
-                    {
-                        Color = stroke.StrokeColor,
-                        Style = SKPaintStyle.Stroke,
-                        StrokeCap = SKStrokeCap.Round,
-                        StrokeWidth = stroke.StrokeWidth,
-                        IsAntialias = true
-                    };
+                    var tipType = vm.Brush.TipType;
+
                     for (int i = 1; i < stroke.Points.Count; i++)
                     {
+                        using var paint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, tipType);
+
                         var p1 = stroke.Points[i - 1];
                         var p2 = stroke.Points[i];
                         canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
@@ -126,6 +122,39 @@ namespace VE.Views
                 canvas.DrawCircle((float)pos.X, (float)pos.Y, radius, borderPaint);
             }
         }
+        //--- Działanie Rysowania ---//
+
+        // Obsługa końcówek //
+        private SKPaint MakePaintForTip(SKColor color, float width, BrushSettings.BrushTipType tip)
+        {
+            var paint = new SKPaint
+            {
+                Color = color,
+                Style = SKPaintStyle.Stroke,
+                StrokeCap = SKStrokeCap.Round,
+                StrokeWidth = width,
+                IsAntialias = true
+            };
+
+            switch (tip)
+            {
+                case BrushSettings.BrushTipType.Pencil:
+                    // klasyczna, cienka linia
+                    break;
+                case BrushSettings.BrushTipType.Brush:
+                    paint.StrokeWidth = width * 2; // grubsza
+                    paint.MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3); // "miękka" końcówka
+                    break;
+                case BrushSettings.BrushTipType.Crayon:
+                    paint.IsAntialias = false;
+                    paint.PathEffect = SKPathEffect.CreateDash(new float[] { 7, 3 }, 0); // efekt przerywanej lub ziarnistej
+                    break;
+            }
+            return paint;
+        }
+
+        //--- Obsługa Końcówek ---//
+
         //------ Działanie rysowania ------//
 
         // Obsługa SaveFile //

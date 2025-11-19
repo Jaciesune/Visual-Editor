@@ -24,6 +24,20 @@ namespace VE.Models
             set { _b = value; OnPropertyChanged(); PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(B))); }
         }
 
+        private BrushTipType _tipType = BrushTipType.Pencil;
+        public BrushTipType TipType
+        {
+            get => _tipType;
+            set { _tipType = value; OnPropertyChanged(); }
+        }
+
+        public enum BrushTipType
+        {
+            Pencil,
+            Brush,
+            Crayon,
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
