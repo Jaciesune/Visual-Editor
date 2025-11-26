@@ -32,6 +32,7 @@ namespace VE.Views
         {
             if (BindingContext is VE.ViewModels.MainPageViewModel vm && vm.SelectedLayer != null)
             {
+
                 if (vm.SelectedTool == "Eraser")
                 {
                     vm.EraserPreviewPosition = e.Location; // wyświetlanie gumki na bieżąco 
@@ -59,6 +60,18 @@ namespace VE.Views
                     MainCanvas.InvalidateSurface();
                     e.Handled = true;
                     return;
+                }
+                // Wiadro:
+                if (vm.SelectedTool == "Bucket")
+                {
+                    if (e.ActionType == SKTouchAction.Pressed)
+                    {
+                        var pt = new Point(e.Location.X, e.Location.Y);
+                        vm.FillBucketCommand.Execute(pt);
+                        MainCanvas.InvalidateSurface();
+                        e.Handled = true;
+                        return;
+                    }
                 }
                 // Pędzel:
                 switch (e.ActionType)

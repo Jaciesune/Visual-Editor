@@ -23,15 +23,106 @@ namespace VE.ViewModels
             AddLayerCommand = new Command(AddLayer);
             ToggleLayerVisibilityCommand = new Command<Layer>(ToggleLayerVisibility);
             RemoveLayerCommand = new Command<Layer>(RemoveLayer);
+            BucketSettings = new BucketSettings
+            {
+                PredefinedColors = new ObservableCollection<Color>
+                {
+                    Colors.Black, Colors.White, Colors.Red, Colors.Green, Colors.Blue, Colors.Yellow, Colors.Cyan
+                },
+                SelectedColor = Colors.Black,
+                Red = 0,
+                Green = 0,
+                Blue = 0
+            };
 
         }
 
-        // Piptera + Bucket //
+        // Bucket //
 
+        public BucketSettings BucketSettings { get; set; }
 
+        public ICommand SetBucketColorCommand => new Command<Color>(color =>
+        {
+            BucketSettings.SelectedColor = color;
+            BucketSettings.Red = (int)(color.Red * 255);
+            BucketSettings.Green = (int)(color.Green * 255);
+            BucketSettings.Blue = (int)(color.Blue * 255);
+            OnPropertyChanged(nameof(BucketSettings));
+        });
+        public ICommand FillBucketCommand => new Command<Point>(pt => FillWithBucket(pt));
 
+        // Flood Fill //
+        private void FillWithBucket(Point pt)
+        {
+            if (SelectedLayer?.Bitmap == null) return;
 
-        //------ Pipeta + Bucket ------//
+            int x = (int)pt.X;
+            int y = (int)pt.Y;
+            var bitmap = SelectedLayer.Bitmap;
+
+            if (x < 0 || y < 0 || x >= bitmap.Width || y >= bitmap.Height) return;
+
+            // Kolor startowy (kliknięty)
+            SKColor targetColor = bitmap.GetPixel(x, y);
+
+            // Kolor wiadra (fill)
+            SKColor fillColor = new SKColor(
+                (byte)(BucketSettings.SelectedColor.Red * 255),
+                (byte)(BucketSettings.SelectedColor.Green * 255),
+                (byte)(BucketSettings.SelectedColor.Blue * 255),
+                (byte)(BucketSettings.SelectedColor.Alpha * 255));
+
+            if (AreColorsSimilar(targetColor, fillColor, tolerance: 10)) return; // nie zamalowuj tego samego!
+
+            Queue<(int, int)> queue = new();
+            queue.Enqueue((x, y));
+            HashSet<(int, int)> visited = new();
+
+            // Sąsiedzi 8-kierunkowo (również ukośne)
+            int[] dx = { -1, -1, -1, 0, 1, 1, 1, 0 };
+            int[] dy = { -1, 0, 1, 1, 1, 0, -1, -1 };
+
+            while (queue.Count > 0)
+            {
+                var (cx, cy) = queue.Dequeue();
+                if (cx < 0 || cy < 0 || cx >= bitmap.Width || cy >= bitmap.Height) continue;
+                if (visited.Contains((cx, cy))) continue;
+
+                var currentColor = bitmap.GetPixel(cx, cy);
+
+                if (AreColorsSimilar(currentColor, targetColor, tolerance: 10))
+                {
+                    bitmap.SetPixel(cx, cy, fillColor);
+                    visited.Add((cx, cy));
+
+                    // Dodaj sąsiadów w 8 kierunkach
+                    for (int dir = 0; dir < 8; dir++)
+                    {
+                        int nx = cx + dx[dir];
+                        int ny = cy + dy[dir];
+                        queue.Enqueue((nx, ny));
+                    }
+                }
+            }
+
+            OnPropertyChangedForLayer(SelectedLayer);
+            OnPropertyChanged(nameof(Layers));
+        }
+        //--- Flood Fill ---//
+
+        // Porównywanie kolorów //
+
+        private bool AreColorsSimilar(SKColor c1, SKColor c2, int tolerance = 10)
+        {
+            return Math.Abs(c1.Red - c2.Red) <= tolerance &&
+                   Math.Abs(c1.Green - c2.Green) <= tolerance &&
+                   Math.Abs(c1.Blue - c2.Blue) <= tolerance &&
+                   Math.Abs(c1.Alpha - c2.Alpha) <= tolerance;
+        }
+
+        //--- Porównywanie kolorów ---//
+
+        //------ Bucket ------//
 
 
         // Warstwy //
@@ -51,10 +142,16 @@ namespace VE.ViewModels
 
         private void AddLayer()
         {
+            var width = 700;
+            var height = 450;
+            var bmp = new SKBitmap(width, height);
+            bmp.Erase(SKColors.Transparent);
+
             var newLayer = new Layer
             {
                 Name = $"Warstwa {Layers.Count}",
-                IsVisible = true
+                IsVisible = true,
+                Bitmap = bmp
             };
             Layers.Add(newLayer);
             SelectedLayer = newLayer;

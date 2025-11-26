@@ -304,6 +304,7 @@
                         </Setter>
                     </DataTrigger>
 
+                    <!-- Gumka -->
                     <DataTrigger TargetType="ContentView" Binding="{Binding SelectedTool}" Value="Eraser">
                         <Setter Property="Content">
                             <Setter.Value>
@@ -315,6 +316,34 @@
                         Maximum="40"
                         Value="{Binding Eraser.Size, Mode=TwoWay}" />
                                     <Label Text="{Binding Eraser.Size, StringFormat='Rozmiar: {0}'}" FontSize="13"/>
+                                </StackLayout>
+                            </Setter.Value>
+                        </Setter>
+                    </DataTrigger>
+                    
+                    <!-- Wiadro -->
+                    <DataTrigger TargetType="ContentView" Binding="{Binding SelectedTool}" Value="Bucket">
+                        <Setter Property="Content">
+                            <Setter.Value>
+                                <StackLayout Spacing="10">
+                                    <Label Text="Wiadro - wybór koloru:"/>
+                                    <CollectionView ItemsSource="{Binding BucketSettings.PredefinedColors}" SelectionMode="Single" SelectedItem="{Binding BucketSettings.SelectedColor}">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+                                                <BoxView Color="{Binding .}" WidthRequest="40" HeightRequest="40">
+                                                    <BoxView.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding Path=BindingContext.SetBucketColorCommand, Source={x:Reference MainPageRoot}}" CommandParameter="{Binding .}" />
+                                                    </BoxView.GestureRecognizers>
+                                                </BoxView>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+
+                                    <Label Text="Ustaw kolor ręcznie (RGB):"/>
+                                    <Slider Minimum="0" Maximum="255" Value="{Binding BucketSettings.Red, Mode=TwoWay}" />
+                                    <Slider Minimum="0" Maximum="255" Value="{Binding BucketSettings.Green, Mode=TwoWay}" />
+                                    <Slider Minimum="0" Maximum="255" Value="{Binding BucketSettings.Blue, Mode=TwoWay}" />
+                                    <BoxView Color="{Binding BucketSettings.SelectedColor}" WidthRequest="80" HeightRequest="40" />
                                 </StackLayout>
                             </Setter.Value>
                         </Setter>

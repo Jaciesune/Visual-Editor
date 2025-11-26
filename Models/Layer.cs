@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -10,6 +11,7 @@ namespace VE.Models
 {
     public class Layer : INotifyPropertyChanged
     {
+        public SKBitmap Bitmap { get; set; }
         private string _name;
         public string Name
         {
