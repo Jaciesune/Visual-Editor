@@ -105,49 +105,11 @@ namespace VE.Views
 
             foreach (var layer in vm.Layers.Where(l => l.IsVisible))
             {
-                foreach (var stroke in layer.Strokes)
-                {
-                    var tipType = stroke.TipType;
-
-                    if (tipType == BrushSettings.BrushTipType.Spray)
-                    {
-                        using var paint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, tipType);
-                        foreach (var sprayPt in stroke.SprayPoints)
-                        {
-                            canvas.DrawCircle(sprayPt.Item1.X, sprayPt.Item1.Y, sprayPt.Item2, paint);
-                        }
-                    }
-                    else if (tipType == BrushSettings.BrushTipType.Marker)
-                    {
-                        if (stroke.Points.Count < 2) continue;
-                        using var paint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, tipType);
-                        for (int i = 1; i < stroke.Points.Count; i++)
-                        {
-                            var p1 = stroke.Points[i - 1];
-                            var p2 = stroke.Points[i];
-                            canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
-                        }
-
-                        using var circlePaint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, tipType);
-                        circlePaint.Style = SKPaintStyle.Fill;
-                        canvas.DrawCircle((float)stroke.Points.First().X, (float)stroke.Points.First().Y, stroke.StrokeWidth * 1.5f, circlePaint);
-                        canvas.DrawCircle((float)stroke.Points.Last().X, (float)stroke.Points.Last().Y, stroke.StrokeWidth * 1.5f, circlePaint);
-                    }
-                    else
-                    {
-                        if (stroke.Points.Count < 2) continue;
-                        for (int i = 1; i < stroke.Points.Count; i++)
-                        {
-                            using var paint = MakePaintForTip(stroke.StrokeColor, stroke.StrokeWidth, tipType);
-                            var p1 = stroke.Points[i - 1];
-                            var p2 = stroke.Points[i];
-                            canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
-                        }
-                    }
-                }
+                if (layer.Bitmap != null)
+                    canvas.DrawBitmap(layer.Bitmap, 0, 0);
             }
 
-            // Podgląd gumki
+            // Podgląd gumki jak poprzednio (zostaw).
             if (vm.SelectedTool == "Eraser")
             {
                 var pos = vm.EraserPreviewPosition;

@@ -3,7 +3,6 @@ using SkiaSharp;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using VE.Models;
 using VE.Views;
@@ -37,6 +36,8 @@ namespace VE.ViewModels
 
         }
 
+        private List<Point> _currentStrokePoints; // Tymczasowa zmienna na czas rysowania pociągnięcia
+
         // Bucket //
 
         public BucketSettings BucketSettings { get; set; }
@@ -51,7 +52,6 @@ namespace VE.ViewModels
         });
         public ICommand FillBucketCommand => new Command<Point>(pt => FillWithBucket(pt));
 
-        // Flood Fill //
         private void FillWithBucket(Point pt)
         {
             if (SelectedLayer?.Bitmap == null) return;
@@ -62,23 +62,20 @@ namespace VE.ViewModels
 
             if (x < 0 || y < 0 || x >= bitmap.Width || y >= bitmap.Height) return;
 
-            // Kolor startowy (kliknięty)
             SKColor targetColor = bitmap.GetPixel(x, y);
 
-            // Kolor wiadra (fill)
             SKColor fillColor = new SKColor(
                 (byte)(BucketSettings.SelectedColor.Red * 255),
                 (byte)(BucketSettings.SelectedColor.Green * 255),
                 (byte)(BucketSettings.SelectedColor.Blue * 255),
                 (byte)(BucketSettings.SelectedColor.Alpha * 255));
 
-            if (AreColorsSimilar(targetColor, fillColor, tolerance: 10)) return; // nie zamalowuj tego samego!
+            if (AreColorsSimilar(targetColor, fillColor, tolerance: 10)) return;
 
             Queue<(int, int)> queue = new();
             queue.Enqueue((x, y));
             HashSet<(int, int)> visited = new();
 
-            // Sąsiedzi 8-kierunkowo (również ukośne)
             int[] dx = { -1, -1, -1, 0, 1, 1, 1, 0 };
             int[] dy = { -1, 0, 1, 1, 1, 0, -1, -1 };
 
@@ -95,7 +92,6 @@ namespace VE.ViewModels
                     bitmap.SetPixel(cx, cy, fillColor);
                     visited.Add((cx, cy));
 
-                    // Dodaj sąsiadów w 8 kierunkach
                     for (int dir = 0; dir < 8; dir++)
                     {
                         int nx = cx + dx[dir];
@@ -108,9 +104,6 @@ namespace VE.ViewModels
             OnPropertyChangedForLayer(SelectedLayer);
             OnPropertyChanged(nameof(Layers));
         }
-        //--- Flood Fill ---//
-
-        // Porównywanie kolorów //
 
         private bool AreColorsSimilar(SKColor c1, SKColor c2, int tolerance = 10)
         {
@@ -119,8 +112,6 @@ namespace VE.ViewModels
                    Math.Abs(c1.Blue - c2.Blue) <= tolerance &&
                    Math.Abs(c1.Alpha - c2.Alpha) <= tolerance;
         }
-
-        //--- Porównywanie kolorów ---//
 
         //------ Bucket ------//
 
@@ -137,8 +128,6 @@ namespace VE.ViewModels
         public ICommand ToggleLayerVisibilityCommand { get; }
         public ICommand RemoveLayerCommand { get; }
         public ICommand AddLayerCommand { get; }
-
-        // Dodanie warstwy //
 
         private void AddLayer()
         {
@@ -158,10 +147,6 @@ namespace VE.ViewModels
             OnPropertyChanged(nameof(Layers));
         }
 
-        //--- Dodanie warstwy ---//
-
-        // Ukrycie warstwy //
-
         private void ToggleLayerVisibility(Layer layer)
         {
             if (layer != null)
@@ -170,10 +155,6 @@ namespace VE.ViewModels
                 OnPropertyChanged(nameof(Layers));
             }
         }
-
-        //--- Ukrycie warstwy ---//
-
-        //Usunięcie warstwy //
 
         private void RemoveLayer(Layer layer)
         {
@@ -185,8 +166,6 @@ namespace VE.ViewModels
                 OnPropertyChanged(nameof(Layers));
             }
         }
-
-        //--- Usunięcie warstwy ---//
 
         public ObservableCollection<Layer> Layers { get; set; } = new();
         private Layer _selectedLayer;
@@ -200,7 +179,6 @@ namespace VE.ViewModels
                     _selectedLayer = value;
                     OnPropertyChanged(nameof(SelectedLayer));
                     OnPropertyChanged(nameof(Layers));
-                    // wymuszenioe ponownego renderowania warstw
                     foreach (var layer in Layers)
                         OnPropertyChangedForLayer(layer);
                 }
@@ -243,146 +221,166 @@ namespace VE.ViewModels
         }
 
         public BrushSettings Brush { get; set; } = new BrushSettings();
-        private BrushStroke _currentStroke;
 
-        // usuwanie z warstwy //
-
-        public void EraseOnSelectedLayer(double x, double y)
-        {
-            if (SelectedLayer == null) return;
-            double r = Eraser.Size;
-
-            var strokesToAdd = new List<BrushStroke>();
-
-            foreach (var stroke in SelectedLayer.Strokes.Reverse().ToList())
-            {
-                if (stroke.TipType == BrushSettings.BrushTipType.Spray)
-                {
-                    stroke.SprayPoints.RemoveAll(pt =>
-                        Math.Pow(pt.Item1.X - x, 2) + Math.Pow(pt.Item1.Y - y, 2) < r * r);
-                    if (stroke.SprayPoints.Count == 0)
-                        SelectedLayer.Strokes.Remove(stroke);
-                    continue;
-                }
-                var newSegments = new List<List<Point>>();
-                var currentSegment = new List<Point>();
-
-                foreach (var p in stroke.Points)
-                {
-                    double dx = x - p.X;
-                    double dy = y - p.Y;
-                    if (dx * dx + dy * dy > r * r)
-                    {
-                        currentSegment.Add(p);
-                    }
-                    else
-                    {
-                        if (currentSegment.Count > 0)
-                        {
-                            newSegments.Add(new List<Point>(currentSegment));
-                            currentSegment.Clear();
-                        }
-                    }
-                }
-                if (currentSegment.Count > 0)
-                    newSegments.Add(currentSegment);
-
-                // Zamiana na fragmenty
-                if (newSegments.Count == 0)
-                    SelectedLayer.Strokes.Remove(stroke);
-                else if (newSegments.Count == 1)
-                {
-                    stroke.Points.Clear(); // zachowanie stroke
-                    stroke.Points.AddRange(newSegments[0]);
-                }
-                else
-                {
-                    int idx = SelectedLayer.Strokes.IndexOf(stroke);
-                    SelectedLayer.Strokes.RemoveAt(idx);
-                    foreach (var seg in newSegments)
-                    {
-                        if (seg.Count > 1)
-                        {
-                            var newStroke = new BrushStroke
-                            {
-                                Points = seg,
-                                StrokeColor = stroke.StrokeColor,
-                                StrokeWidth = stroke.StrokeWidth
-                            };
-                            SelectedLayer.Strokes.Insert(idx++, newStroke);
-                        }
-                    }
-                }
-            }
-            OnPropertyChanged(nameof(Layers));
-        }
-
-        //------ Gumka ------//
-
-
-        // Pędzel //
         public Color BrushColor => Color.FromRgb(Brush.R, Brush.G, Brush.B);
 
         public void StartStrokeOnSelectedLayer()
         {
-            if (SelectedLayer == null) return;
-            _currentStroke = new BrushStroke
-            {
-                StrokeColor = new SKColor((byte)Brush.R, (byte)Brush.G, (byte)Brush.B),
-                StrokeWidth = 4,
-                TipType = Brush.TipType
-            };
-            SelectedLayer.Strokes.Add(_currentStroke);
-            OnPropertyChanged(nameof(Layers));
+            _currentStrokePoints = new List<Point>();
         }
         public void AddStrokePointOnSelectedLayer(double x, double y)
         {
-            if (_currentStroke == null) return;
-
-            // SPRAY
-            if (Brush.TipType == BrushSettings.BrushTipType.Spray)
-            {
-                int density = Brush.SprayDensity > 0 ? Brush.SprayDensity : 10;
-                var rand = new Random();
-                for (int i = 0; i < density; i++)
-                {
-                    float dx = (float)(rand.NextDouble() - 0.5) * Brush.Size;
-                    float dy = (float)(rand.NextDouble() - 0.5) * Brush.Size;
-                    float radius = 1.1f;
-                    var pt = new SKPoint((float)x + dx, (float)y + dy);
-                    _currentStroke.SprayPoints.Add(new Tuple<SKPoint, float>(pt, radius));
-                }
-            }
-
-            // MARKER I INNE
-            else
-            {
-                _currentStroke.Points.Add(new Point(x, y));
-            }
-
-            OnPropertyChanged(nameof(Layers));
+            _currentStrokePoints?.Add(new Point(x, y));
         }
         public void EndStrokeOnSelectedLayer()
         {
-            _currentStroke = null;
+            if (_currentStrokePoints == null || _currentStrokePoints.Count < 2 || SelectedLayer?.Bitmap == null)
+            {
+                _currentStrokePoints = null;
+                return;
+            }
+            using var canvas = new SKCanvas(SelectedLayer.Bitmap);
+
+            var color = new SKColor((byte)Brush.R, (byte)Brush.G, (byte)Brush.B);
+
+            switch (Brush.TipType)
+            {
+                case BrushSettings.BrushTipType.Pencil:
+                    using (var paint = new SKPaint
+                    {
+                        Color = color,
+                        StrokeWidth = Brush.Size,
+                        Style = SKPaintStyle.Stroke,
+                        StrokeCap = SKStrokeCap.Round,
+                        IsAntialias = true
+                    })
+                    {
+                        for (int i = 1; i < _currentStrokePoints.Count; i++)
+                        {
+                            var p1 = _currentStrokePoints[i - 1];
+                            var p2 = _currentStrokePoints[i];
+                            canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
+                        }
+                    }
+                    break;
+
+                case BrushSettings.BrushTipType.Brush:
+                    using (var paint = new SKPaint
+                    {
+                        Color = color,
+                        StrokeWidth = Brush.Size * 2f,
+                        Style = SKPaintStyle.Stroke,
+                        StrokeCap = SKStrokeCap.Round,
+                        IsAntialias = true,
+                        MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3) // miękki efekt
+                    })
+                    {
+                        for (int i = 1; i < _currentStrokePoints.Count; i++)
+                        {
+                            var p1 = _currentStrokePoints[i - 1];
+                            var p2 = _currentStrokePoints[i];
+                            canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
+                        }
+                    }
+                    break;
+
+                case BrushSettings.BrushTipType.Crayon:
+                    using (var paint = new SKPaint
+                    {
+                        Color = color,
+                        StrokeWidth = Brush.Size,
+                        Style = SKPaintStyle.Stroke,
+                        StrokeCap = SKStrokeCap.Round,
+                        IsAntialias = false,
+                        PathEffect = SKPathEffect.CreateDash(new float[] { 7, 3 }, 0)
+                    })
+                    {
+                        for (int i = 1; i < _currentStrokePoints.Count; i++)
+                        {
+                            var p1 = _currentStrokePoints[i - 1];
+                            var p2 = _currentStrokePoints[i];
+                            canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
+                        }
+                    }
+                    break;
+
+                case BrushSettings.BrushTipType.Marker:
+                    using (var paint = new SKPaint
+                    {
+                        Color = color.WithAlpha(120), // lekka transparencja
+                        StrokeWidth = Brush.Size * 3f,
+                        Style = SKPaintStyle.Stroke,
+                        StrokeCap = SKStrokeCap.Round,
+                        IsAntialias = true
+                    })
+                    {
+                        for (int i = 1; i < _currentStrokePoints.Count; i++)
+                        {
+                            var p1 = _currentStrokePoints[i - 1];
+                            var p2 = _currentStrokePoints[i];
+                            canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
+                        }
+                        // kropka na początku i końcu
+                        using var circlePaint = new SKPaint
+                        {
+                            Color = color.WithAlpha(120),
+                            Style = SKPaintStyle.Fill
+                        };
+                        canvas.DrawCircle((float)_currentStrokePoints.First().X, (float)_currentStrokePoints.First().Y, Brush.Size * 1.5f, circlePaint);
+                        canvas.DrawCircle((float)_currentStrokePoints.Last().X, (float)_currentStrokePoints.Last().Y, Brush.Size * 1.5f, circlePaint);
+                    }
+                    break;
+
+                case BrushSettings.BrushTipType.Spray:
+                    using (var paint = new SKPaint
+                    {
+                        Color = color,
+                        Style = SKPaintStyle.Fill,
+                        IsAntialias = true
+                    })
+                    {
+                        var density = Math.Max(Brush.SprayDensity, 1);
+                        var rand = new Random();
+                        foreach (var p in _currentStrokePoints)
+                        {
+                            for (int i = 0; i < density; i++)
+                            {
+                                float dx = (float)((rand.NextDouble() - 0.5) * Brush.Size);
+                                float dy = (float)((rand.NextDouble() - 0.5) * Brush.Size);
+                                float radius = 1.1f;
+                                canvas.DrawCircle((float)p.X + dx, (float)p.Y + dy, radius, paint);
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            _currentStrokePoints = null;
+            OnPropertyChangedForLayer(SelectedLayer);
             OnPropertyChanged(nameof(Layers));
         }
 
-        //------ Pędzel ------//
 
-        public ObservableCollection<Point> BrushPoints { get; } = new();
-
-        public void AddBrushPoint(double x, double y)
+        public void EraseOnSelectedLayer(double x, double y)
         {
-            BrushPoints.Add(new Point(x, y));
-            OnPropertyChanged(nameof(BrushPoints));
+            if (SelectedLayer?.Bitmap == null) return;
+            using var canvas = new SKCanvas(SelectedLayer.Bitmap);
+
+            using var paint = new SKPaint
+            {
+                Color = SKColors.Transparent,
+                Style = SKPaintStyle.Stroke,
+                StrokeCap = SKStrokeCap.Round,
+                StrokeWidth = Eraser.Size,
+                BlendMode = SKBlendMode.Clear
+            };
+
+            canvas.DrawCircle((float)x, (float)y, Eraser.Size / 2f, paint);
+            OnPropertyChangedForLayer(SelectedLayer);
+            OnPropertyChanged(nameof(Layers));
         }
 
-        public void ClearBrushPoints()
-        {
-            BrushPoints.Clear();
-            OnPropertyChanged(nameof(BrushPoints));
-        }
+        //------ Gumka i Pędzel ------//
 
         private ImageSource _canvasImage;
         public ImageSource CanvasImage
@@ -391,8 +389,6 @@ namespace VE.ViewModels
             set { _canvasImage = value; OnPropertyChanged(nameof(CanvasImage)); }
         }
 
-        // Color Picker //
-
         public ICommand SetColorCommand => new Command<string>(hex =>
         {
             var color = Color.FromArgb(hex);
@@ -400,10 +396,6 @@ namespace VE.ViewModels
             Brush.G = (int)(color.Green * 255);
             Brush.B = (int)(color.Blue * 255);
         });
-
-        //--- Color Picker ---//
-
-        // BrushTipType //
 
         public ObservableCollection<BrushSettings.BrushTipType> BrushTipTypes { get; } = new ObservableCollection<BrushSettings.BrushTipType>
         {
@@ -414,11 +406,6 @@ namespace VE.ViewModels
             BrushSettings.BrushTipType.Spray,
         };
 
-        //--- BrushTipType ---//
-
-        //------ Pędzel ------//
-
-        // OpenImage Command //
         public ICommand OpenImageCommand { get; }
 
         private async Task OpenImageAsync()
@@ -449,14 +436,12 @@ namespace VE.ViewModels
                 ms.Position = 0;
 
                 CanvasImage = ImageSource.FromStream(() => new MemoryStream(ms.ToArray()));
-
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 ImageLoadError = "Błąd odczytu pliku: " + ex.Message;
             }
         }
-
-        //------ OpenImage Command ------//
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName)
@@ -469,9 +454,7 @@ namespace VE.ViewModels
             set { _imageLoadError = value; OnPropertyChanged(nameof(ImageLoadError)); }
         }
 
-        // SaveImage Command //
         public ICommand SaveImageCommand { get; }
-
         public async Task SaveImage()
         {
             var mainPage = (Application.Current.MainPage as MainPage);
@@ -487,24 +470,8 @@ namespace VE.ViewModels
 
             foreach (var layer in Layers.Where(l => l.IsVisible))
             {
-                foreach (var stroke in layer.Strokes)
-                {
-                    if (stroke.Points.Count < 2) continue;
-                    using var paint = new SKPaint
-                    {
-                        Color = stroke.StrokeColor,
-                        Style = SKPaintStyle.Stroke,
-                        StrokeCap = SKStrokeCap.Round,
-                        StrokeWidth = 4,
-                        IsAntialias = true
-                    };
-                    for (int i = 1; i < stroke.Points.Count; i++)
-                    {
-                        var p1 = stroke.Points[i - 1];
-                        var p2 = stroke.Points[i];
-                        canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
-                    }
-                }
+                if (layer.Bitmap != null)
+                    canvas.DrawBitmap(layer.Bitmap, 0, 0);
             }
 
             using var image = surface.Snapshot();
@@ -513,20 +480,16 @@ namespace VE.ViewModels
             using var stream = File.OpenWrite(filePath);
             data.SaveTo(stream);
         }
-        //------ SaveImage Command ------//
-
-        // NewProjectCommand //
 
         public ICommand NewProjectCommand => new Command(async () => await NewProjectAsync());
 
         private async Task NewProjectAsync()
         {
-            // Sprawdzenie czy jest na warstwach coś do zapisania
-            bool hasContent = Layers.Any(l => l.Strokes.Count > 0);
+            // Sprawdzenie, czy jest jakakolwiek zawartość (poza pustą warstwą Tło)
+            bool hasContent = ProjectHasContent();
 
             if (hasContent)
             {
-                // Pokazanie pytania użytkownikowi czy kontynuować
                 var answer = await Application.Current.MainPage.DisplayAlert(
                     "Nowy projekt",
                     "Na bieżącym płótnie są niezapisane zmiany. Czy chcesz utworzyć nowy projekt bez zapisu?",
@@ -534,18 +497,43 @@ namespace VE.ViewModels
                     "Anuluj");
 
                 if (!answer)
-                    return; // Przerwanie jeśli wybrał anuluj
+                    return;
             }
 
-            // Tworzenie nowej pustej warstwy "Tło"
             Layers.Clear();
             Layers.Add(new Layer { Name = "Tło", IsVisible = true });
             SelectedLayer = Layers.First();
-
-            // Czyszczenie podgląd, obraz itp:
             CanvasImage = null;
         }
 
-        //------ NewProjectCommand ------/
+        private bool ProjectHasContent()
+        {
+            if (Layers.Count > 1)
+                return true;
+            if (Layers.Count == 1 && !IsBitmapEmpty(Layers[0].Bitmap))
+                return true;
+            return false;
+        }
+
+        // Definicja sprawdzania, czy bitmapa (warstwa) jest pusta
+        private bool IsBitmapEmpty(SKBitmap bmp)
+        {
+            if (bmp == null)
+                return true;
+            // Wersja z losowaniem pikseli
+            int tested = 0, whiteChecked = 0;
+            Random rand = new();
+            for (int i = 0; i < 100; i++)
+            {
+                int x = rand.Next(bmp.Width);
+                int y = rand.Next(bmp.Height);
+                var px = bmp.GetPixel(x, y);
+                tested++;
+                if (px.Alpha == 0 || (px.Red == 255 && px.Green == 255 && px.Blue == 255))
+                    whiteChecked++;
+            }
+            // Jeśli wszystkie sprawdzone to przezroczyste lub białe – traktujemy jako puste
+            return tested == whiteChecked;
+        }
     }
 }
