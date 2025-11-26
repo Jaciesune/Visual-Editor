@@ -27,28 +27,53 @@ namespace VE.Views
             BindingContext = new VE.ViewModels.MainPageViewModel();
         }
 
+
+        public static SKPoint ToSKPoint(Microsoft.Maui.Graphics.Point p)=> new SKPoint((float)p.X, (float)p.Y);
+        public SKPoint EraserPreviewPosition { get; set; }
         // Obsługa Narzędzi //
         private void MainCanvas_Touch(object sender, SKTouchEventArgs e)
         {
             if (BindingContext is VE.ViewModels.MainPageViewModel vm && vm.SelectedLayer != null)
             {
+                // Skalowanie
+                if (vm.SelectedLayer == null || vm.SelectedLayer.Bitmap == null)
+                    return;
+                var bmp = vm.SelectedLayer.Bitmap;
+                double viewWidth = MainCanvas.CanvasSize.Width;
+                double viewHeight = MainCanvas.CanvasSize.Height;
+                double bmpWidth = bmp.Width;
+                double bmpHeight = bmp.Height;
+                double scale = Math.Min(viewWidth / bmpWidth, viewHeight / bmpHeight);
+                double offsetX = (viewWidth - bmpWidth * scale) / 2.0;
+                double offsetY = (viewHeight - bmpHeight * scale) / 2.0;
 
+                double logicX = (e.Location.X - offsetX) / scale;
+                double logicY = (e.Location.Y - offsetY) / scale;
+
+                // Odrzuć, jeśli poza bitmapą!
+                if (logicX < 0 || logicY < 0 || logicX >= bmpWidth || logicY >= bmpHeight)
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                // --- GUMKA ---
                 if (vm.SelectedTool == "Eraser")
                 {
-                    vm.EraserPreviewPosition = e.Location; // wyświetlanie gumki na bieżąco 
+                    vm.EraserPreviewPosition = new SKPoint((float)logicX, (float)logicY);
                     switch (e.ActionType)
                     {
                         case SKTouchAction.Pressed:
                             vm.IsEraserActive = true;
-                            vm.EraseOnSelectedLayer(e.Location.X, e.Location.Y);
-                            vm.EraserPreviewPosition = e.Location;
+                            vm.EraseOnSelectedLayer(logicX, logicY);
+                            vm.EraserPreviewPosition = new SKPoint((float)logicX, (float)logicY);
                             MainCanvas.InvalidateSurface();
                             break;
                         case SKTouchAction.Moved:
-                            if (vm.IsEraserActive) // usuwanie po wciśnięciu
+                            if (vm.IsEraserActive)
                             {
-                                vm.EraseOnSelectedLayer(e.Location.X, e.Location.Y);
-                                vm.EraserPreviewPosition = e.Location;
+                                vm.EraseOnSelectedLayer(logicX, logicY);
+                                vm.EraserPreviewPosition = new SKPoint((float)logicX, (float)logicY);
                                 MainCanvas.InvalidateSurface();
                             }
                             break;
@@ -61,27 +86,27 @@ namespace VE.Views
                     e.Handled = true;
                     return;
                 }
-                // Wiadro:
+                // --- WIADRO ---
                 if (vm.SelectedTool == "Bucket")
                 {
                     if (e.ActionType == SKTouchAction.Pressed)
                     {
-                        var pt = new Point(e.Location.X, e.Location.Y);
+                        var pt = new Microsoft.Maui.Graphics.Point(logicX, logicY);
                         vm.FillBucketCommand.Execute(pt);
                         MainCanvas.InvalidateSurface();
                         e.Handled = true;
                         return;
                     }
                 }
-                // Pędzel:
+                // --- PĘDZEL ---
                 switch (e.ActionType)
                 {
                     case SKTouchAction.Pressed:
                         vm.StartStrokeOnSelectedLayer();
-                        vm.AddStrokePointOnSelectedLayer(e.Location.X, e.Location.Y);
+                        vm.AddStrokePointOnSelectedLayer(logicX, logicY);
                         break;
                     case SKTouchAction.Moved:
-                        vm.AddStrokePointOnSelectedLayer(e.Location.X, e.Location.Y);
+                        vm.AddStrokePointOnSelectedLayer(logicX, logicY);
                         break;
                     case SKTouchAction.Released:
                     case SKTouchAction.Cancelled:
@@ -103,16 +128,33 @@ namespace VE.Views
             canvas.Clear(SKColors.White);
             if (vm == null) return;
 
+            // Rozmiar logiczny płótna (bitmapy)
+            if (vm.Layers.Count == 0 || vm.Layers[0].Bitmap == null)
+                return;
+            int bmpWidth = vm.Layers[0].Bitmap.Width;
+            int bmpHeight = vm.Layers[0].Bitmap.Height;
+            int viewWidth = e.Info.Width;
+            int viewHeight = e.Info.Height;
+
+            // Skalowanie i wyśrodkowanie bitmapy
+            float scale = Math.Min((float)viewWidth / bmpWidth, (float)viewHeight / bmpHeight);
+            float offsetX = (viewWidth - bmpWidth * scale) / 2f;
+            float offsetY = (viewHeight - bmpHeight * scale) / 2f;
+            var destRect = new SKRect(offsetX, offsetY, offsetX + bmpWidth * scale, offsetY + bmpHeight * scale);
+
             foreach (var layer in vm.Layers.Where(l => l.IsVisible))
             {
                 if (layer.Bitmap != null)
-                    canvas.DrawBitmap(layer.Bitmap, 0, 0);
+                    canvas.DrawBitmap(layer.Bitmap, destRect);
             }
 
-            // Podgląd gumki jak poprzednio (zostaw).
-            if (vm.SelectedTool == "Eraser")
+            // Podgląd gumki (skalowany)
+            if (vm.SelectedTool == "Eraser" && vm.EraserPreviewPosition != default)
             {
+                // Przekształcanie pozycji gumki (bitmapa -> ekran):
                 var pos = vm.EraserPreviewPosition;
+                float guiX = (float)(pos.X * scale + offsetX);
+                float guiY = (float)(pos.Y * scale + offsetY);
                 int radius = vm.Eraser.Size;
                 using var borderPaint = new SKPaint
                 {
@@ -121,53 +163,69 @@ namespace VE.Views
                     StrokeWidth = 2,
                     IsAntialias = true
                 };
-                canvas.DrawCircle((float)pos.X, (float)pos.Y, radius, borderPaint);
+                canvas.DrawCircle(guiX, guiY, radius * scale / 2f, borderPaint);
+            }
+
+            // Podgląd aktualnego rysowania (także skalowany)
+            if (vm.SelectedTool == "Brush" && vm.CurrentStrokePoints != null && vm.CurrentStrokePoints.Count > 1)
+            {
+                var color = new SKColor((byte)vm.Brush.R, (byte)vm.Brush.G, (byte)vm.Brush.B);
+                var tip = vm.Brush.TipType;
+                using var paint = new SKPaint
+                {
+                    Color = tip == BrushSettings.BrushTipType.Marker ? color.WithAlpha(120) : color,
+                    StrokeWidth = (tip == BrushSettings.BrushTipType.Brush ? vm.Brush.Size * 2f
+                                : tip == BrushSettings.BrushTipType.Marker ? vm.Brush.Size * 3f
+                                : vm.Brush.Size) * scale,
+                    Style = tip == BrushSettings.BrushTipType.Spray ? SKPaintStyle.Fill : SKPaintStyle.Stroke,
+                    StrokeCap = SKStrokeCap.Round,
+                    IsAntialias = tip != BrushSettings.BrushTipType.Crayon,
+                    PathEffect = tip == BrushSettings.BrushTipType.Crayon ? SKPathEffect.CreateDash(new float[] { 7, 3 }, 0) : null,
+                    MaskFilter = tip == BrushSettings.BrushTipType.Brush ? SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3) : null
+                };
+
+                if (tip != BrushSettings.BrushTipType.Spray)
+                {
+                    for (int i = 1; i < vm.CurrentStrokePoints.Count; i++)
+                    {
+                        var p1 = vm.CurrentStrokePoints[i - 1];
+                        var p2 = vm.CurrentStrokePoints[i];
+                        // Przekształcanie punktów bitmapy na ekran:
+                        float x1 = (float)(p1.X * scale + offsetX);
+                        float y1 = (float)(p1.Y * scale + offsetY);
+                        float x2 = (float)(p2.X * scale + offsetX);
+                        float y2 = (float)(p2.Y * scale + offsetY);
+                        canvas.DrawLine(x1, y1, x2, y2, paint);
+                    }
+                    if (tip == BrushSettings.BrushTipType.Marker)
+                    {
+                        using var circlePaint = new SKPaint { Color = color.WithAlpha(120), Style = SKPaintStyle.Fill };
+                        var first = vm.CurrentStrokePoints.First();
+                        var last = vm.CurrentStrokePoints.Last();
+                        canvas.DrawCircle((float)(first.X * scale + offsetX), (float)(first.Y * scale + offsetY), vm.Brush.Size * 1.5f * scale, circlePaint);
+                        canvas.DrawCircle((float)(last.X * scale + offsetX), (float)(last.Y * scale + offsetY), vm.Brush.Size * 1.5f * scale, circlePaint);
+                    }
+                }
+                else // Spray
+                {
+                    var density = Math.Max(vm.Brush.SprayDensity, 1);
+                    var rand = new Random();
+                    foreach (var p in vm.CurrentStrokePoints)
+                    {
+                        for (int i = 0; i < density; i++)
+                        {
+                            float dx = (float)((rand.NextDouble() - 0.5) * vm.Brush.Size);
+                            float dy = (float)((rand.NextDouble() - 0.5) * vm.Brush.Size);
+                            float radius = 1.1f * scale;
+                            float guiX = (float)((p.X + dx) * scale + offsetX);
+                            float guiY = (float)((p.Y + dy) * scale + offsetY);
+                            canvas.DrawCircle(guiX, guiY, radius, paint);
+                        }
+                    }
+                }
             }
         }
         //--- Działanie Rysowania ---//
-
-        // Obsługa końcówek //
-        private SKPaint MakePaintForTip(SKColor color, float width, BrushSettings.BrushTipType tip)
-        {
-            var paint = new SKPaint
-            {
-                Color = color,
-                Style = SKPaintStyle.Stroke,
-                StrokeCap = SKStrokeCap.Round,
-                StrokeWidth = width,
-                IsAntialias = true
-            };
-
-            switch (tip)
-            {
-                case BrushSettings.BrushTipType.Pencil:
-                    // klasyczna, cienka linia
-                    break;
-                case BrushSettings.BrushTipType.Brush:
-                    paint.StrokeWidth = width * 2; // grubsza
-                    paint.MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3); // "miękka" końcówka
-                    break;
-                case BrushSettings.BrushTipType.Crayon:
-                    paint.IsAntialias = false;
-                    paint.PathEffect = SKPathEffect.CreateDash(new float[] { 7, 3 }, 0); // efekt przerywanej lub ziarnistej
-                    break;
-                case BrushSettings.BrushTipType.Marker:
-                    paint.Color = color.WithAlpha(120); // lekka transparencja
-                    paint.StrokeWidth = width * 3;
-                    paint.StrokeCap = SKStrokeCap.Round;
-                    paint.Style = SKPaintStyle.Stroke;
-                    break;
-                case BrushSettings.BrushTipType.Spray:
-                    paint.Style = SKPaintStyle.Fill;
-                    paint.StrokeWidth = width;
-                    break;
-            }
-            return paint;
-        }
-
-        //--- Obsługa Końcówek ---//
-
-        //------ Działanie rysowania ------//
 
         // Obsługa SaveFile //
 
@@ -196,34 +254,18 @@ namespace VE.Views
             if (filePath == null) return;
 
             var vm = (MainPageViewModel)BindingContext;
-            int width = 700;
-            int height = 450;
+            int width = vm.CanvasWidth;
+            int height = vm.CanvasHeight;
             using var surface = SKSurface.Create(new SKImageInfo(width, height));
             var canvas = surface.Canvas;
             canvas.Clear(SKColors.White);
 
             foreach (var layer in vm.Layers.Where(l => l.IsVisible))
             {
-                foreach (var stroke in layer.Strokes)
-                {
-                    if (stroke.Points.Count < 2)
-                        continue;
-                    using var paint = new SKPaint
-                    {
-                        Color = stroke.StrokeColor,
-                        Style = SKPaintStyle.Stroke,
-                        StrokeCap = SKStrokeCap.Round,
-                        StrokeWidth = stroke.StrokeWidth > 0 ? stroke.StrokeWidth : 4,
-                        IsAntialias = true
-                    };
-                    for (int i = 1; i < stroke.Points.Count; i++)
-                    {
-                        var p1 = stroke.Points[i - 1];
-                        var p2 = stroke.Points[i];
-                        canvas.DrawLine((float)p1.X, (float)p1.Y, (float)p2.X, (float)p2.Y, paint);
-                    }
-                }
+                if (layer.Bitmap != null)
+                    canvas.DrawBitmap(layer.Bitmap, 0, 0);
             }
+
             using var image = surface.Snapshot();
             using var data = image.Encode(SKEncodedImageFormat.Png, 100);
             using var stream = File.OpenWrite(filePath);

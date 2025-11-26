@@ -11,14 +11,14 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
             <!-- Panel narzędzi -->
-            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="Auto"/>
             <!-- Panel opcji narzędzi -->
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="220"/>
             <!-- Canvas -->
-            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="*"/>
             <!-- Warstwy -->
+            <ColumnDefinition Width="300"/>
         </Grid.ColumnDefinitions>
 
         <!-- Toolbar -->
@@ -354,88 +354,104 @@
 
         <!-- Główny Canvas -->
         <Label Grid.Row="1" Grid.Column="2" Text="{Binding ImageLoadError}" TextColor="Red" FontSize="13"/>
-        <ScrollView Grid.Row="1" Grid.Column="2" Orientation="Both" BackgroundColor="Transparent">
-            <Frame Margin="10"
-                   BackgroundColor="White"
-                   BorderColor="#AAAAAA"
-                   CornerRadius="4"
-                   WidthRequest="700"
-                   HeightRequest="450"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center">
-                <skia:SKCanvasView x:Name="MainCanvas"
-                                  PaintSurface="MainCanvas_PaintSurface"
-                                  EnableTouchEvents="True"
-                                  Touch="MainCanvas_Touch"
-                                  WidthRequest="700"
-                                  HeightRequest="450"/>
-            </Frame>
-        </ScrollView>
-
+        <skia:SKCanvasView 
+            Grid.Row="1"
+            Grid.Column="2"
+            x:Name="MainCanvas"
+            PaintSurface="MainCanvas_PaintSurface"
+            EnableTouchEvents="True"
+            Touch="MainCanvas_Touch"
+            VerticalOptions="Fill"
+            HorizontalOptions="Fill"
+        />
         <!-- Panel warstw -->
-        <StackLayout Grid.Row="1" Grid.Column="3" BackgroundColor="#525252" Padding="8">
-            <Label Text="Warstwy" FontAttributes="Bold" TextColor="White"/>
-            <CollectionView ItemsSource="{Binding Layers}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Frame
-                            Padding="0"
-                            Margin="0,6,0,0"
-                            BackgroundColor="{Binding IsSelected, Converter={StaticResource IsSelectedToColorConverter}}"
-                            BorderColor="#23262B"
-                            HasShadow="False"
-                            CornerRadius="9"
-                            HeightRequest="52"
-                        >
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding BindingContext.SelectLayerCommand, Source={x:Reference MainPageRoot}}" CommandParameter="{Binding .}" />
-                            </Frame.GestureRecognizers>
-                            <Grid ColumnDefinitions="90,38,48" Padding="10" VerticalOptions="CenterAndExpand">
-                                <Label Text="{Binding Name}" Grid.Column="0" TextColor="White" FontAttributes="Bold" FontSize="16"/>
-                                <Button
-                                    Grid.Column="1"
-                                    Text="{Binding IsVisible, Converter={StaticResource BoolToEyeIconConverter}}"
-                                    Command="{Binding BindingContext.ToggleLayerVisibilityCommand, Source={x:Reference MainPageRoot}}"
-                                    CommandParameter="{Binding .}"
-                                    FontFamily="Segoe UI Emoji"
-                                    FontSize="19"
-                                    WidthRequest="38"
-                                    HeightRequest="38"
-                                    BackgroundColor="#393E46"
-                                    TextColor="White"
-                                    CornerRadius="6"
-                                    Padding="0"
-                                />
-                                <Button
-                                    Grid.Column="2"
-                                    Text="Usuń"
-                                    TextColor="White"
-                                    FontSize="15"
-                                    BackgroundColor="#393E46"
-                                    Command="{Binding BindingContext.RemoveLayerCommand, Source={x:Reference MainPageRoot}}"
-                                    CommandParameter="{Binding .}" 
-                                    WidthRequest="48"
-                                    HeightRequest="38"
-                                    IsEnabled="{Binding Name, Converter={StaticResource BackgroundDeleteBlockerConverter}}"
-                                    CornerRadius="6"
-                                    Padding="0"
-                                />
-                            </Grid>
-                        </Frame>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+        <StackLayout Grid.Row="1" Grid.Column="3" BackgroundColor="#525252" Padding="8" Spacing="8">
+
+            <Label Text="Warstwy" FontAttributes="Bold" TextColor="White" FontSize="15"/>
+
+            <!-- ScrollView na warstwy (przewija gdy jest dużo warstw) -->
+            <ScrollView Orientation="Vertical" HeightRequest="280">
+                <CollectionView ItemsSource="{Binding Layers}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame
+                                Padding="0"
+                                Margin="0,3,0,0"
+                                BackgroundColor="{Binding IsSelected, Converter={StaticResource IsSelectedToColorConverter}}"
+                                BorderColor="#23262B"
+                                HasShadow="False"
+                                CornerRadius="6"
+                                HeightRequest="34"
+                            >
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding BindingContext.SelectLayerCommand, Source={x:Reference MainPageRoot}}" CommandParameter="{Binding .}" />
+                                </Frame.GestureRecognizers>
+                                <Grid ColumnDefinitions="70,32,32" Padding="7" VerticalOptions="Center">
+                                    <Label Text="{Binding Name}" Grid.Column="0" TextColor="White" FontAttributes="Bold" FontSize="13"/>
+                                    <Button
+                                        Grid.Column="1"
+                                        Text="{Binding IsVisible, Converter={StaticResource BoolToEyeIconConverter}}"
+                                        Command="{Binding BindingContext.ToggleLayerVisibilityCommand, Source={x:Reference MainPageRoot}}"
+                                        CommandParameter="{Binding .}"
+                                        FontSize="13"
+                                        WidthRequest="28"
+                                        HeightRequest="28"
+                                        BackgroundColor="#393E46"
+                                        TextColor="White"
+                                        CornerRadius="4"
+                                        Padding="0"
+                                    />
+                                    <Button
+                                        Grid.Column="2"
+                                        Text="Usuń"
+                                        TextColor="White"
+                                        FontSize="12"
+                                        BackgroundColor="#393E46"
+                                        Command="{Binding BindingContext.RemoveLayerCommand, Source={x:Reference MainPageRoot}}"
+                                        CommandParameter="{Binding .}" 
+                                        WidthRequest="34"
+                                        HeightRequest="28"
+                                        IsEnabled="{Binding Name, Converter={StaticResource BackgroundDeleteBlockerConverter}}"
+                                        CornerRadius="4"
+                                        Padding="0"
+                                    />
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </ScrollView>
+
             <Button 
                 Text="Dodaj warstwę" 
-                Margin="0,10,0,0"
+                Margin="0,6,0,0"
                 Command="{Binding AddLayerCommand}"
                 BackgroundColor="#393E46"
                 TextColor="White"
                 FontAttributes="Bold"
-                CornerRadius="6"
-                HeightRequest="50"
-                FontSize="17"
+                CornerRadius="5"
+                HeightRequest="36"
+                FontSize="13"
             />
+
+            <!-- Panel do zmiany rozmiaru canvasu -->
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" Margin="0,12,0,0" VerticalOptions="Center">
+                <Label Text="Szer:" Grid.Column="0" TextColor="White" FontSize="12" VerticalOptions="Center"/>
+                <Entry Text="{Binding PendingCanvasWidth, Mode=TwoWay}" Grid.Column="1" WidthRequest="46" FontSize="12" HorizontalTextAlignment="Center" Keyboard="Numeric"/>
+                <Label Text="Wys:" Grid.Column="2" TextColor="White" FontSize="12" VerticalOptions="Center"/>
+                <Entry Text="{Binding PendingCanvasHeight, Mode=TwoWay}" Grid.Column="3" WidthRequest="46" FontSize="12" HorizontalTextAlignment="Center" Keyboard="Numeric"/>
+            </Grid>
+            <Button 
+                Text="Zmień rozmiar"
+                Command="{Binding ResizeCanvasCommand}"
+                Margin="0,6,0,0"
+                BackgroundColor="#393E46"
+                TextColor="White"
+                CornerRadius="5"
+                HeightRequest="28"
+                FontSize="12"
+            />
+
         </StackLayout>
     </Grid>
 </ContentPage>

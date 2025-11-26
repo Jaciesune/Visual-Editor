@@ -13,7 +13,7 @@ namespace VE.ViewModels
     {
         public MainPageViewModel()
         {
-            Layers.Add(new Layer { Name = "Tło" });
+            Layers.Add(new Layer { Name = "Tło", IsVisible = true, Bitmap = new SKBitmap(CanvasWidth, CanvasHeight) });
             SelectedLayer = Layers.First();
 
             Brush.PropertyChanged += (s, e) => OnPropertyChanged(nameof(BrushColor));
@@ -33,10 +33,73 @@ namespace VE.ViewModels
                 Green = 0,
                 Blue = 0
             };
+            _pendingCanvasWidth = _canvasWidth;
+            _pendingCanvasHeight = _canvasHeight;
 
         }
 
+        // Canvas //
+
+        private int _canvasWidth = 700;
+        private int _canvasHeight = 450;
+        private int _pendingCanvasWidth = 700;
+        private int _pendingCanvasHeight = 450;
+
+        public int CanvasWidth
+        {
+            get => _canvasWidth;
+            private set { _canvasWidth = value; OnPropertyChanged(nameof(CanvasWidth)); } // prywatny setter!
+        }
+        public int CanvasHeight
+        {
+            get => _canvasHeight;
+            private set { _canvasHeight = value; OnPropertyChanged(nameof(CanvasHeight)); }
+        }
+
+        // Właściwości powiązane z entry
+        public int PendingCanvasWidth
+        {
+            get => _pendingCanvasWidth;
+            set { _pendingCanvasWidth = value; OnPropertyChanged(nameof(PendingCanvasWidth)); }
+        }
+        public int PendingCanvasHeight
+        {
+            get => _pendingCanvasHeight;
+            set { _pendingCanvasHeight = value; OnPropertyChanged(nameof(PendingCanvasHeight)); }
+        }
+
+        // Komenda do zmiany rozmiaru płótna (canvas)
+        public ICommand ResizeCanvasCommand => new Command(ResizeCanvas);
+
+
+        // Zmiana wielkości //
+
+        public void ResizeCanvas()
+        {
+            CanvasWidth = PendingCanvasWidth;
+            CanvasHeight = PendingCanvasHeight;
+
+            foreach (var layer in Layers)
+            {
+                var newBmp = new SKBitmap(CanvasWidth, CanvasHeight);
+                using (var canvas = new SKCanvas(newBmp))
+                {
+                    canvas.Clear(SKColors.Transparent);
+                    if (layer.Bitmap != null)
+                        canvas.DrawBitmap(layer.Bitmap, 0, 0);
+                }
+                layer.Bitmap = newBmp;
+            }
+            OnPropertyChanged(nameof(Layers));
+        }
+
+
+        //--- Zmiana wielkości ---//
+
+        //------ Canvas ------//
+
         private List<Point> _currentStrokePoints; // Tymczasowa zmienna na czas rysowania pociągnięcia
+        public IReadOnlyList<Point> CurrentStrokePoints => _currentStrokePoints;
 
         // Bucket //
 
@@ -131,9 +194,7 @@ namespace VE.ViewModels
 
         private void AddLayer()
         {
-            var width = 700;
-            var height = 450;
-            var bmp = new SKBitmap(width, height);
+            var bmp = new SKBitmap(CanvasWidth, CanvasHeight);
             bmp.Erase(SKColors.Transparent);
 
             var newLayer = new Layer
@@ -463,7 +524,7 @@ namespace VE.ViewModels
             if (filePath == null)
                 return;
 
-            int width = 700, height = 450;
+            int width = CanvasWidth, height = CanvasHeight;
             using var surface = SKSurface.Create(new SKImageInfo(width, height));
             var canvas = surface.Canvas;
             canvas.Clear(SKColors.White);
@@ -501,7 +562,7 @@ namespace VE.ViewModels
             }
 
             Layers.Clear();
-            Layers.Add(new Layer { Name = "Tło", IsVisible = true });
+            Layers.Add(new Layer { Name = "Tło", IsVisible = true, Bitmap = new SKBitmap(CanvasWidth, CanvasHeight) });
             SelectedLayer = Layers.First();
             CanvasImage = null;
         }
