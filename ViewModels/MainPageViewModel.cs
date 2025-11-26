@@ -26,6 +26,14 @@ namespace VE.ViewModels
 
         }
 
+        // Piptera + Bucket //
+
+
+
+
+        //------ Pipeta + Bucket ------//
+
+
         // Warstwy //
         public ICommand SelectLayerCommand => new Command<Layer>(layer =>
         {
