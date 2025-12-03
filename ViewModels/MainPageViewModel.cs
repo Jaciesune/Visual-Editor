@@ -693,13 +693,16 @@ namespace VE.ViewModels
                 // dopasuj rozmiar obrazu do canvasu
                 if (bmp.Width != CanvasWidth || bmp.Height != CanvasHeight)
                 {
-                    var scaled = new SKBitmap(CanvasWidth, CanvasHeight);
+                    var scaled = new SKBitmap(CanvasWidth, CanvasHeight, true); // true = z alfą
                     using (var canvas = new SKCanvas(scaled))
                     {
                         canvas.Clear(SKColors.Transparent);
+
                         var srcRect = new SKRect(0, 0, bmp.Width, bmp.Height);
                         var dstRect = new SKRect(0, 0, CanvasWidth, CanvasHeight);
-                        canvas.DrawBitmap(bmp, srcRect, dstRect);
+
+                        using var paint = new SKPaint { IsAntialias = true };
+                        canvas.DrawBitmap(bmp, srcRect, dstRect, paint);
                     }
                     bmp = scaled;
                 }
@@ -734,7 +737,7 @@ namespace VE.ViewModels
             int width = CanvasWidth, height = CanvasHeight;
             using var surface = SKSurface.Create(new SKImageInfo(width, height));
             var canvas = surface.Canvas;
-            canvas.Clear(SKColors.White);
+            canvas.Clear(SKColors.Transparent);
 
             foreach (var layer in Layers.Where(l => l.IsVisible))
             {
