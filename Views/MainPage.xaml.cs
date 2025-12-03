@@ -126,7 +126,7 @@ namespace VE.Views
         {
             var vm = BindingContext as VE.ViewModels.MainPageViewModel;
             var canvas = e.Surface.Canvas;
-            canvas.Clear(SKColors.White);
+            canvas.Clear(new SKColor(66, 66, 66));
             if (vm == null) return;
 
             // Rozmiar logiczny płótna (bitmapy)
@@ -143,10 +143,31 @@ namespace VE.Views
             float offsetY = (viewHeight - bmpHeight * scale) / 2f;
             var destRect = new SKRect(offsetX, offsetY, offsetX + bmpWidth * scale, offsetY + bmpHeight * scale);
 
+            using (var bgPaint = new SKPaint
+            {
+                Color = SKColors.White,
+                Style = SKPaintStyle.Fill,
+                IsAntialias = false
+            })
+            {
+                canvas.DrawRect(destRect, bgPaint);
+            }
+
             foreach (var layer in vm.Layers.Where(l => l.IsVisible))
             {
                 if (layer.Bitmap != null)
                     canvas.DrawBitmap(layer.Bitmap, destRect);
+            }
+
+            using (var borderPaint = new SKPaint
+            {
+                Color = SKColors.Gray,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 2,
+                IsAntialias = true
+            })
+            {
+                canvas.DrawRect(destRect, borderPaint);
             }
 
             // Podgląd gumki (skalowany)
