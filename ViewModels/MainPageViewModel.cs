@@ -375,6 +375,34 @@ namespace VE.ViewModels
             }
         }
 
+        public void MoveLayer(int oldIndex, int newIndex)
+        {
+            if (oldIndex < 0 || oldIndex >= Layers.Count) return;
+            if (newIndex < 0 || newIndex >= Layers.Count) return;
+            if (oldIndex == newIndex) return;
+
+            var item = Layers[oldIndex];
+            Layers.RemoveAt(oldIndex);
+            Layers.Insert(newIndex, item);
+
+            SelectedLayer = item;
+            OnPropertyChanged(nameof(Layers));
+        }
+
+        public ICommand MoveLayerUpCommand => new Command<Layer>(layer =>
+        {
+            if (layer == null) return;
+            var index = Layers.IndexOf(layer);
+            MoveLayer(index, index - 1);
+        });
+
+        public ICommand MoveLayerDownCommand => new Command<Layer>(layer =>
+        {
+            if (layer == null) return;
+            var index = Layers.IndexOf(layer);
+            MoveLayer(index, index + 1);
+        });
+
         public ObservableCollection<Layer> Layers { get; set; } = new();
         private Layer _selectedLayer;
         public Layer SelectedLayer
@@ -649,7 +677,20 @@ namespace VE.ViewModels
                     return;
                 }
 
-                // Skalowanie jeśli roizmiar inny
+                // jeśli brak wybranej warstwy – utwórz tło
+                if (SelectedLayer == null)
+                {
+                    var baseLayer = new Layer
+                    {
+                        Name = "Tło",
+                        IsVisible = true,
+                        Bitmap = new SKBitmap(CanvasWidth, CanvasHeight)
+                    };
+                    Layers.Add(baseLayer);
+                    SelectedLayer = baseLayer;
+                }
+
+                // dopasuj rozmiar obrazu do canvasu
                 if (bmp.Width != CanvasWidth || bmp.Height != CanvasHeight)
                 {
                     var scaled = new SKBitmap(CanvasWidth, CanvasHeight);
@@ -663,16 +704,8 @@ namespace VE.ViewModels
                     bmp = scaled;
                 }
 
-                // Dodaje na nowej warstwie
-                var newLayer = new Layer
-                {
-                    Name = $"Obraz {Layers.Count}",
-                    IsVisible = true,
-                    Bitmap = bmp
-                };
-                Layers.Add(newLayer);
-                SelectedLayer = newLayer;
-
+                SelectedLayer.Bitmap = bmp;
+                OnPropertyChangedForLayer(SelectedLayer);
                 OnPropertyChanged(nameof(Layers));
             }
             catch (Exception ex)

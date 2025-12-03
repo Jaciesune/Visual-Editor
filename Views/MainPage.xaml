@@ -410,10 +410,27 @@
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Command="{Binding BindingContext.SelectLayerCommand, Source={x:Reference MainPageRoot}}" CommandParameter="{Binding .}" />
                                 </Frame.GestureRecognizers>
-                                <Grid ColumnDefinitions="70,32,32" Padding="7" VerticalOptions="Center">
-                                    <Label Text="{Binding Name}" Grid.Column="0" TextColor="White" FontAttributes="Bold" FontSize="13"/>
+                                <Grid ColumnDefinitions="32,70,32,32,32" Padding="7" VerticalOptions="Center">
+                                    <!-- Góra -->
                                     <Button
-                                        Grid.Column="1"
+                                        Grid.Column="0"
+                                        Text="▲"
+                                        Command="{Binding BindingContext.MoveLayerUpCommand, Source={x:Reference MainPageRoot}}"
+                                        CommandParameter="{Binding .}"
+                                        FontSize="10"
+                                        WidthRequest="28"
+                                        HeightRequest="28"
+                                        BackgroundColor="#393E46"
+                                        TextColor="White"
+                                        CornerRadius="4"
+                                        Padding="0" />
+
+                                    <!-- Nazwa warstwy -->
+                                    <Label Text="{Binding Name}" Grid.Column="1" TextColor="White" FontAttributes="Bold" FontSize="13"/>
+
+                                    <!-- Widoczność -->
+                                    <Button
+                                        Grid.Column="2"
                                         Text="{Binding IsVisible, Converter={StaticResource BoolToEyeIconConverter}}"
                                         Command="{Binding BindingContext.ToggleLayerVisibilityCommand, Source={x:Reference MainPageRoot}}"
                                         CommandParameter="{Binding .}"
@@ -423,10 +440,11 @@
                                         BackgroundColor="#393E46"
                                         TextColor="White"
                                         CornerRadius="4"
-                                        Padding="0"
-                                    />
+                                        Padding="0" />
+
+                                    <!-- Usuń -->
                                     <Button
-                                        Grid.Column="2"
+                                        Grid.Column="3"
                                         Text="Usuń"
                                         TextColor="White"
                                         FontSize="12"
@@ -437,8 +455,21 @@
                                         HeightRequest="28"
                                         IsEnabled="{Binding Name, Converter={StaticResource BackgroundDeleteBlockerConverter}}"
                                         CornerRadius="4"
-                                        Padding="0"
-                                    />
+                                        Padding="0" />
+
+                                    <!-- Dół -->
+                                    <Button
+                                        Grid.Column="4"
+                                        Text="▼"
+                                        Command="{Binding BindingContext.MoveLayerDownCommand, Source={x:Reference MainPageRoot}}"
+                                        CommandParameter="{Binding .}"
+                                        FontSize="10"
+                                        WidthRequest="28"
+                                        HeightRequest="28"
+                                        BackgroundColor="#393E46"
+                                        TextColor="White"
+                                        CornerRadius="4"
+                                        Padding="0" />
                                 </Grid>
                             </Frame>
                         </DataTemplate>
