@@ -15,6 +15,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
 using WinRT.Interop;
 using Microsoft.UI.Windowing;
+using Windows.Storage.Pickers;
 #endif
 
 namespace VE.Views
@@ -232,7 +233,7 @@ namespace VE.Views
         public async Task<string> ShowSaveFileDialog(string suggestedFileName)
         {
             #if WINDOWS
-                var picker = new Windows.Storage.Pickers.FileSavePicker();
+                var picker = new FileSavePicker();
                 var window = (Microsoft.Maui.Controls.Application.Current.Windows[0].Handler.PlatformView as Microsoft.UI.Xaml.Window);
                 var hwnd = WindowNative.GetWindowHandle(window);
                 InitializeWithWindow.Initialize(picker, hwnd);
@@ -253,23 +254,8 @@ namespace VE.Views
             var filePath = await ShowSaveFileDialog("obraz.png");
             if (filePath == null) return;
 
-            var vm = (MainPageViewModel)BindingContext;
-            int width = vm.CanvasWidth;
-            int height = vm.CanvasHeight;
-            using var surface = SKSurface.Create(new SKImageInfo(width, height));
-            var canvas = surface.Canvas;
-            canvas.Clear(SKColors.White);
-
-            foreach (var layer in vm.Layers.Where(l => l.IsVisible))
-            {
-                if (layer.Bitmap != null)
-                    canvas.DrawBitmap(layer.Bitmap, 0, 0);
-            }
-
-            using var image = surface.Snapshot();
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            using var stream = File.OpenWrite(filePath);
-            data.SaveTo(stream);
+            if (BindingContext is MainPageViewModel vm)
+                await vm.SaveImageToPath(filePath);
         }
         //------ Obsługa SaveFile ------//
     }

@@ -21,25 +21,49 @@
             <ColumnDefinition Width="300"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Toolbar -->
-        <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="4"
+        <!-- Editor actions -->
+        <HorizontalStackLayout 
+            Grid.Row="0" 
+            Grid.ColumnSpan="4"
             Padding="4"
             Spacing="8"
             BackgroundColor="#23262B"
-            HeightRequest="48">
-            <Button Text="Nowy"
+            HeightRequest="48"
+            >
+            
+                <Button 
+                    Text="Nowy"
                     Command="{Binding NewProjectCommand}"
                     TextColor="White"
                     BackgroundColor="#393e46"
                     FontAttributes="Bold"
                     CornerRadius="6"/>
-            <Button Text="Otwórz"
+                <Button 
+                    Text="Otwórz projekt"
+                    TextColor="White"
+                    BackgroundColor="#393e46"
+                    FontAttributes="Bold"
+                    CornerRadius="6"
+                    Command="{Binding OpenProjectCommand}"/>
+
+            <Button 
+                    Text="Otwórz obraz"
                     TextColor="White"
                     BackgroundColor="#393e46"
                     FontAttributes="Bold"
                     CornerRadius="6"
                     Command="{Binding OpenImageCommand}"/>
-            <Button Text="Zapisz"
+
+                <Button 
+                    Text="Zapisz projekt"
+                    TextColor="White"
+                    BackgroundColor="#393e46"
+                    FontAttributes="Bold"
+                    CornerRadius="6"
+                    Command="{Binding SaveProjectCommand}"/>
+
+                <Button 
+                    Text="Eksportuj jako PNG/JPG"
                     TextColor="White"
                     BackgroundColor="#393e46"
                     FontAttributes="Bold"

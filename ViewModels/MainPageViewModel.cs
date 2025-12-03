@@ -5,7 +5,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows.Input;
 using VE.Models;
+using VE.Services;
 using VE.Views;
+using WinRT.Interop;
 
 namespace VE.ViewModels
 {
@@ -18,7 +20,8 @@ namespace VE.ViewModels
 
             Brush.PropertyChanged += (s, e) => OnPropertyChanged(nameof(BrushColor));
             OpenImageCommand = new Command(async () => await OpenImageAsync());
-            SaveImageCommand = new Command(async () => await SaveImage());
+            SaveProjectCommand = new Command(async () => await SaveProjectAsync());
+            OpenProjectCommand = new Command(async () => await OpenProjectAsync());
             AddLayerCommand = new Command(AddLayer);
             ToggleLayerVisibilityCommand = new Command<Layer>(ToggleLayerVisibility);
             RemoveLayerCommand = new Command<Layer>(RemoveLayer);
@@ -37,6 +40,150 @@ namespace VE.ViewModels
             _pendingCanvasHeight = _canvasHeight;
 
         }
+
+        // Zapis jako projekt //
+
+        // Komendy R+W //
+
+        public ICommand SaveProjectCommand { get; }
+        public ICommand OpenProjectCommand { get; }
+
+        //--- Komendy R+W ---//
+
+        private async Task<string> ShowSaveProjectDialog(string suggestedFileName)
+        {
+            #if WINDOWS
+                var mainPage = (Application.Current.MainPage as MainPage);
+                var picker = new Windows.Storage.Pickers.FileSavePicker();
+                var window = (Microsoft.Maui.Controls.Application.Current.Windows[0].Handler.PlatformView as Microsoft.UI.Xaml.Window);
+                var hwnd = WindowNative.GetWindowHandle(window);
+                InitializeWithWindow.Initialize(picker, hwnd);
+
+                picker.SuggestedFileName = suggestedFileName;
+                picker.FileTypeChoices.Add("VE Project", new List<string>() { ".veproj" });
+
+                var file = await picker.PickSaveFileAsync();
+                return file?.Path;
+            #else
+                return null;
+            #endif
+        }
+
+        private async Task<string> ShowOpenProjectDialog()
+        {
+            #if WINDOWS
+                var picker = new Windows.Storage.Pickers.FileOpenPicker();
+                var window = (Microsoft.Maui.Controls.Application.Current.Windows[0].Handler.PlatformView as Microsoft.UI.Xaml.Window);
+                var hwnd = WindowNative.GetWindowHandle(window);
+                InitializeWithWindow.Initialize(picker, hwnd);
+
+                picker.FileTypeFilter.Add(".veproj");
+
+                var file = await picker.PickSingleFileAsync();
+                return file?.Path;
+            #else
+                return null;
+            #endif
+        }
+
+        private async Task SaveProjectAsync()
+        {
+            var path = await ShowSaveProjectDialog("projekt.veproj");
+            if (path == null) return;
+
+            var project = BuildProjectFromCurrentState();
+            ProjectStorageService.SaveProject(project, path);
+        }
+
+        private async Task OpenProjectAsync()
+        {
+            // ostrzeżenie o niezapisanych zmianach
+            var path = await ShowOpenProjectDialog();
+            if (path == null) return;
+
+            var project = ProjectStorageService.LoadProject(path);
+            if (project == null) return;
+
+            ApplyProjectToCurrentState(project);
+        }
+
+
+        // Otwarcie projektu z pliku
+        private ProjectFile BuildProjectFromCurrentState()
+        {
+            var project = new ProjectFile
+            {
+                CanvasWidth = CanvasWidth,
+                CanvasHeight = CanvasHeight
+            };
+
+            foreach (var layer in Layers)
+            {
+                if (layer.Bitmap == null) continue;
+
+                using var image = SKImage.FromBitmap(layer.Bitmap);
+                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                var bytes = data.ToArray();
+
+                project.Layers.Add(new ProjectLayer
+                {
+                    Name = layer.Name,
+                    IsVisible = layer.IsVisible,
+                    BitmapPng = bytes
+                });
+            }
+
+            return project;
+        }
+
+        // konwersja running project to saved project
+        private void ApplyProjectToCurrentState(ProjectFile project)
+        {
+            // rozmiar canvasu
+            _pendingCanvasWidth = project.CanvasWidth;
+            _pendingCanvasHeight = project.CanvasHeight;
+            ResizeCanvas(); // przeskaluje/podmieni istniejące bitmapy do nowego rozmiaru
+
+            Layers.Clear();
+
+            foreach (var pl in project.Layers)
+            {
+                SKBitmap bmp = null;
+                if (pl.BitmapPng != null && pl.BitmapPng.Length > 0)
+                {
+                    using var ms = new MemoryStream(pl.BitmapPng);
+                    bmp = SKBitmap.Decode(ms);
+                }
+
+                // jeśli bitmapa jest null – nowa pusta
+                if (bmp == null)
+                    bmp = new SKBitmap(CanvasWidth, CanvasHeight);
+
+                var layer = new Layer
+                {
+                    Name = pl.Name,
+                    IsVisible = pl.IsVisible,
+                    Bitmap = bmp
+                };
+                Layers.Add(layer);
+            }
+
+            // jeśli nie było żadnej warstwy – domyślne „Tło”
+            if (Layers.Count == 0)
+            {
+                Layers.Add(new Layer
+                {
+                    Name = "Tło",
+                    IsVisible = true,
+                    Bitmap = new SKBitmap(CanvasWidth, CanvasHeight)
+                });
+            }
+
+            SelectedLayer = Layers.First();
+            OnPropertyChanged(nameof(Layers));
+        }
+
+        //------ Zapis jako projekt ------//
 
         // Canvas //
 
@@ -491,12 +638,42 @@ namespace VE.ViewModels
                 }
 
                 using var fileStream = await result.OpenReadAsync();
-
                 using var ms = new MemoryStream();
                 await fileStream.CopyToAsync(ms);
                 ms.Position = 0;
 
-                CanvasImage = ImageSource.FromStream(() => new MemoryStream(ms.ToArray()));
+                var bmp = SKBitmap.Decode(ms);
+                if (bmp == null)
+                {
+                    ImageLoadError = "Nie udało się zdekodować obrazu.";
+                    return;
+                }
+
+                // Skalowanie jeśli roizmiar inny
+                if (bmp.Width != CanvasWidth || bmp.Height != CanvasHeight)
+                {
+                    var scaled = new SKBitmap(CanvasWidth, CanvasHeight);
+                    using (var canvas = new SKCanvas(scaled))
+                    {
+                        canvas.Clear(SKColors.Transparent);
+                        var srcRect = new SKRect(0, 0, bmp.Width, bmp.Height);
+                        var dstRect = new SKRect(0, 0, CanvasWidth, CanvasHeight);
+                        canvas.DrawBitmap(bmp, srcRect, dstRect);
+                    }
+                    bmp = scaled;
+                }
+
+                // Dodaje na nowej warstwie
+                var newLayer = new Layer
+                {
+                    Name = $"Obraz {Layers.Count}",
+                    IsVisible = true,
+                    Bitmap = bmp
+                };
+                Layers.Add(newLayer);
+                SelectedLayer = newLayer;
+
+                OnPropertyChanged(nameof(Layers));
             }
             catch (Exception ex)
             {
@@ -516,12 +693,9 @@ namespace VE.ViewModels
         }
 
         public ICommand SaveImageCommand { get; }
-        public async Task SaveImage()
+        public async Task SaveImageToPath(string filePath)
         {
-            var mainPage = (Application.Current.MainPage as MainPage);
-
-            var filePath = await mainPage.ShowSaveFileDialog("obraz.png");
-            if (filePath == null)
+            if (string.IsNullOrWhiteSpace(filePath))
                 return;
 
             int width = CanvasWidth, height = CanvasHeight;
