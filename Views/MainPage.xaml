@@ -119,7 +119,8 @@
                                     <Picker
                                         Title="Typ pędzla"
                                         ItemsSource="{Binding BrushTipTypes}" 
-                                        SelectedItem="{Binding Brush.TipType, Mode=TwoWay}">
+                                        SelectedItem="{Binding Brush.TipType, Mode=TwoWay}"
+                                        SelectedIndex="0">
                                     </Picker>
 
                                     <!-- Ustawienia wielkości pędzla -->
@@ -368,6 +369,55 @@
                                     <Slider Minimum="0" Maximum="255" Value="{Binding BucketSettings.Green, Mode=TwoWay}" />
                                     <Slider Minimum="0" Maximum="255" Value="{Binding BucketSettings.Blue, Mode=TwoWay}" />
                                     <BoxView Color="{Binding BucketSettings.SelectedColor}" WidthRequest="80" HeightRequest="40" />
+                                </StackLayout>
+                            </Setter.Value>
+                        </Setter>
+                    </DataTrigger>
+
+                    <!-- Pipeta -->
+                    <DataTrigger TargetType="ContentView" Binding="{Binding SelectedTool}" Value="Pipette">
+                        <Setter Property="Content">
+                            <Setter.Value>
+                                <StackLayout Spacing="8" BindingContext="{Binding Eyedropper}">
+                                    <Label Text="Pipeta - zapisane kolory:"
+                       FontAttributes="Bold"
+                       TextColor="#23262B" />
+
+                                    <CollectionView ItemsSource="{Binding Slots}">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid ColumnDefinitions="*,Auto" Padding="4">
+                                                    <!-- Kwadracik z kolorem -->
+                                                    <Frame Grid.Column="0"
+                                       HeightRequest="24"
+                                       WidthRequest="24"
+                                       CornerRadius="2"
+                                       Padding="0"
+                                       BackgroundColor="{Binding Color}">
+                                                        <Frame.GestureRecognizers>
+                                                            <TapGestureRecognizer
+                                            Command="{Binding Source={x:Reference MainPageRoot},
+                                                              Path=BindingContext.ApplyEyedropperColorToBrushCommand}"
+                                            CommandParameter="{Binding .}" />
+                                                        </Frame.GestureRecognizers>
+                                                    </Frame>
+
+                                                    <!-- X do usuwania -->
+                                                    <Label Grid.Column="1"
+                                       Text="X"
+                                       VerticalOptions="Center"
+                                       HorizontalOptions="End">
+                                                        <Label.GestureRecognizers>
+                                                            <TapGestureRecognizer
+                                            Command="{Binding Source={x:Reference MainPageRoot},
+                                                              Path=BindingContext.RemoveEyedropperColorCommand}"
+                                            CommandParameter="{Binding .}" />
+                                                        </Label.GestureRecognizers>
+                                                    </Label>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
                                 </StackLayout>
                             </Setter.Value>
                         </Setter>

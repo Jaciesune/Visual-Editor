@@ -18,7 +18,20 @@ namespace VE.ViewModels
             Layers.Add(new Layer { Name = "Tło", IsVisible = true, Bitmap = new SKBitmap(CanvasWidth, CanvasHeight) });
             SelectedLayer = Layers.First();
 
-            Brush.PropertyChanged += (s, e) => OnPropertyChanged(nameof(BrushColor));
+            Brush = new BrushSettings
+            {
+                TipType = BrushSettings.BrushTipType.Pencil
+            };
+
+            Brush.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(Brush.R) ||
+                    e.PropertyName == nameof(Brush.G) ||
+                    e.PropertyName == nameof(Brush.B))
+                {
+                    OnPropertyChanged(nameof(BrushColor));
+                }
+            };
             OpenImageCommand = new Command(async () => await OpenImageAsync());
             SaveProjectCommand = new Command(async () => await SaveProjectAsync());
             OpenProjectCommand = new Command(async () => await OpenProjectAsync());
@@ -40,6 +53,41 @@ namespace VE.ViewModels
             _pendingCanvasHeight = _canvasHeight;
 
         }
+
+        // Pipeta //
+
+        public EyedropperSettings Eyedropper { get; set; } = new EyedropperSettings();
+
+        // Komenda wywoływana po pobraniu koloru pipetą – dodaje slot
+        public ICommand AddEyedropperColorCommand => new Command<Color>(color =>
+        {
+            Eyedropper.Slots.Add(new EyedropperColorSlot { Color = color });
+        });
+
+        // Kliknięcie w X – usuwa slot
+        public ICommand RemoveEyedropperColorCommand => new Command<EyedropperColorSlot>(slot =>
+        {
+            if (slot != null && Eyedropper.Slots.Contains(slot))
+                Eyedropper.Slots.Remove(slot);
+        });
+
+        // Kliknięcie w kwadracik z kolorem – ustawia pędzel
+        public ICommand ApplyEyedropperColorToBrushCommand => new Command<EyedropperColorSlot>(slot =>
+        {
+            if (slot == null)
+                return;
+
+            var color = slot.Color;
+
+            // Ustaw kolor pędzla tak samo jak w SetColorCommand
+            Brush.R = (int)(color.Red * 255);
+            Brush.G = (int)(color.Green * 255);
+            Brush.B = (int)(color.Blue * 255);
+
+            OnPropertyChanged(nameof(BrushColor));  // jeśli u Ciebie jest taka właściwość bindująca [file:2]
+        });
+
+        //------ Pipeta ------//
 
         // Zapis jako projekt //
 

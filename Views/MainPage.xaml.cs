@@ -99,6 +99,31 @@ namespace VE.Views
                         return;
                     }
                 }
+                if (vm.SelectedTool == "Pipette")
+                {
+                    if (e.ActionType == SKTouchAction.Pressed)
+                    {
+                        int x = (int)logicX;
+                        int y = (int)logicY;
+
+                        // Pobór koloru z bitmapy
+                        var skColor = bmp.GetPixel(x, y);
+                        var pickedColor = Microsoft.Maui.Graphics.Color.FromRgba(
+                            skColor.Red, skColor.Green, skColor.Blue, skColor.Alpha);
+
+                        // dodaje slot
+                        vm.AddEyedropperColorCommand.Execute(pickedColor);
+                        // Ustawia kolor od razu
+                        vm.Brush.R = skColor.Red;
+                        vm.Brush.G = skColor.Green;
+                        vm.Brush.B = skColor.Blue;
+
+                        MainCanvas.InvalidateSurface();
+                        e.Handled = true;
+                        return;
+                    }
+
+                }
                 // --- PĘDZEL ---
                 switch (e.ActionType)
                 {

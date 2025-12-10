@@ -9,26 +9,46 @@ namespace VE.Models
         public int R
         {
             get => _r;
-            set { _r = value; OnPropertyChanged(); PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(R))); }
+            set
+            {
+                if (_r == value) return;
+                _r = value;
+                OnPropertyChanged();
+            }
         }
         private int _g;
         public int G
         {
             get => _g;
-            set { _g = value; OnPropertyChanged(); PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(G))); }
+            set
+            {
+                if (_g == value) return;
+                _g = value;
+                OnPropertyChanged();
+            }
         }
         private int _b;
         public int B
         {
             get => _b;
-            set { _b = value; OnPropertyChanged(); PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(B))); }
+            set
+            {
+                if (_b == value) return;
+                _b = value;
+                OnPropertyChanged();
+            }
         }
 
         private BrushTipType _tipType = BrushTipType.Pencil;
         public BrushTipType TipType
         {
             get => _tipType;
-            set { _tipType = value; OnPropertyChanged(); }
+            set
+            {
+                if (_tipType == value) return;
+                _tipType = value;
+                OnPropertyChanged();
+            }
         }
 
         public enum BrushTipType
