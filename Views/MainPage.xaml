@@ -365,9 +365,21 @@
                                     </CollectionView>
 
                                     <Label Text="Ustaw kolor ręcznie (RGB):"/>
-                                    <Slider Minimum="0" Maximum="255" Value="{Binding BucketSettings.Red, Mode=TwoWay}" />
-                                    <Slider Minimum="0" Maximum="255" Value="{Binding BucketSettings.Green, Mode=TwoWay}" />
-                                    <Slider Minimum="0" Maximum="255" Value="{Binding BucketSettings.Blue, Mode=TwoWay}" />
+                                    <Slider 
+                                        Minimum="0" 
+                                        Maximum="255" 
+                                        Value="{Binding BucketSettings.Red, Mode=TwoWay}" 
+                                        ValueChanged="BucketRedSlider_ValueChanged"/>
+                                    <Slider 
+                                        Minimum="0" 
+                                        Maximum="255" 
+                                        Value="{Binding BucketSettings.Green, Mode=TwoWay}" 
+                                        ValueChanged="BucketRedSlider_ValueChanged"/>
+                                    <Slider 
+                                        Minimum="0" 
+                                        Maximum="255" 
+                                        Value="{Binding BucketSettings.Blue, Mode=TwoWay}" 
+                                        ValueChanged="BucketRedSlider_ValueChanged"/>
                                     <BoxView Color="{Binding BucketSettings.SelectedColor}" WidthRequest="80" HeightRequest="40" />
                                 </StackLayout>
                             </Setter.Value>

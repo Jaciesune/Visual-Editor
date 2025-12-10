@@ -31,6 +31,29 @@ namespace VE.Views
 
         public static SKPoint ToSKPoint(Microsoft.Maui.Graphics.Point p)=> new SKPoint((float)p.X, (float)p.Y);
         public SKPoint EraserPreviewPosition { get; set; }
+
+        // Slidery dla wiadra //
+
+        private void BucketRedSlider_ValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            if (BindingContext is MainPageViewModel vm)
+                vm.UpdateBucketFromSliders();
+        }
+
+        private void BucketGreenSlider_ValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            if (BindingContext is MainPageViewModel vm)
+                vm.UpdateBucketFromSliders();
+        }
+
+        private void BucketBlueSlider_ValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            if (BindingContext is MainPageViewModel vm)
+                vm.UpdateBucketFromSliders();
+        }
+
+        //------ Slidery dla wiadra ------//
+
         // Obsługa Narzędzi //
         private void MainCanvas_Touch(object sender, SKTouchEventArgs e)
         {

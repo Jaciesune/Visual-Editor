@@ -49,6 +49,7 @@ namespace VE.ViewModels
                 Green = 0,
                 Blue = 0
             };
+            UpdateBucketSelectedColorFromRgb();
             _pendingCanvasWidth = _canvasWidth;
             _pendingCanvasHeight = _canvasHeight;
 
@@ -297,6 +298,22 @@ namespace VE.ViewModels
         public IReadOnlyList<Point> CurrentStrokePoints => _currentStrokePoints;
 
         // Bucket //
+
+        //slidery dla wiadra
+        public void UpdateBucketFromSliders()
+        {
+            UpdateBucketSelectedColorFromRgb();
+        }
+
+        private void UpdateBucketSelectedColorFromRgb()
+        {
+            BucketSettings.SelectedColor = Color.FromRgb(
+                BucketSettings.Red,
+                BucketSettings.Green,
+                BucketSettings.Blue
+            );
+            OnPropertyChanged(nameof(BucketSettings));
+        }
 
         public BucketSettings BucketSettings { get; set; }
 
